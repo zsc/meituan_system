@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第11章：Agent平等服务与智能化包容设计</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">美团超脑系统复现教程</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章：图灵算法平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章：大规模特征计算</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章：机器学习平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章：调度引擎 - 实时多人多点分配</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章：规划引擎（网络/站点/运力结构规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章：ETA系统 - 全链路时间预估</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章：LBS系统（地图/地址库/路径规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章：定价系统</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章：精准营销与会员体系</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章：反机器人滥用与评论真实性保障</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章：Agent平等服务与智能化包容设计</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">1) 图灵算法平台（算法基础设施）</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="11agent">第11章：Agent平等服务与智能化包容设计</h1>
+<h2 id="_1">本章导读</h2>
+<p>在外卖平台的演进历程中，我们见证了从纯人工操作到智能化服务的转变。如今，越来越多的用户通过智能助手（Agent）与平台交互——帮助老年人下单的语音助手、协助视障用户的屏幕朗读器、代表商家自动接单的智能系统等。这些Agent既不是传统意义上的"用户"，也不是需要防范的"机器人"，而是数字世界中用户意志的延伸。</p>
+<p>本章将探讨一个前瞻性的议题：如何构建一个对Agent友好的服务架构？我们需要在保障平台安全的前提下，公平对待各类合法Agent，让技术真正服务于人的需求。这不仅是技术架构的升级，更是服务理念的革新——从"防御所有自动化程序"转向"拥抱善意的智能化"。</p>
+<h2 id="_2">学习目标</h2>
+<p>完成本章学习后，你将能够：</p>
+<ol>
+<li><strong>理解Agent服务的必要性</strong>：明确为什么需要支持Agent，以及它对平台生态的积极意义</li>
+<li><strong>设计信任体系</strong>：构建Agent身份认证和信任评级机制，实现精细化管理</li>
+<li><strong>区分善恶意图</strong>：掌握区分善意Agent与恶意机器人的技术方法和业务逻辑</li>
+<li><strong>实现动态限流</strong>：设计智能化的API速率限制策略，平衡安全与效率</li>
+<li><strong>优化接口设计</strong>：创建Agent友好的API接口，降低集成门槛</li>
+<li><strong>建立授权机制</strong>：实现用户授权下的Agent代理框架，保护用户权益</li>
+<li><strong>确保合规运营</strong>：理解相关法律法规要求，设计隐私保护方案</li>
+<li><strong>培育健康生态</strong>：制定Agent生态的激励与治理策略，促进良性发展</li>
+</ol>
+<h2 id="111-agent">11.1 Agent服务的演进背景</h2>
+<h3 id="1111">11.1.1 从排斥到接纳的转变</h3>
+<p>早期的互联网服务将所有自动化程序视为潜在威胁。这种"一刀切"的防御策略源于对爬虫、刷单、DDoS攻击等恶意行为的担忧。验证码、设备指纹、行为分析等反机器人技术不断升级，形成了一道道防线。</p>
+<p>然而，随着AI技术的普及和用户需求的演变，这种绝对排斥的立场开始松动：</p>
+<p><strong>认知转变的关键节点</strong>：</p>
+<ul>
+<li>2016-2018：语音助手（Siri、小爱同学）开始代表用户执行任务</li>
+<li>2019-2021：RPA（机器人流程自动化）在企业端广泛应用</li>
+<li>2022-2024：ChatGPT等LLM带来的Agent革命，用户期望AI能代理更多事务</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>传统防御思维                    包容性服务思维
+     │                              │
+     ▼                              ▼
+┌─────────────┐              ┌─────────────┐
+│ 所有Bot都是 │              │  区分善意   │
+│   潜在威胁  │    ────►     │  与恶意     │
+└─────────────┘              └─────────────┘
+     │                              │
+     ▼                              ▼
+┌─────────────┐              ┌─────────────┐
+│  全面封堵   │              │ 分级服务   │
+│             │    ────►     │             │
+└─────────────┘              └─────────────┘
+</code></pre></div>
+
+<p><strong>转变的内在逻辑</strong>：</p>
+<ol>
+<li><strong>用户体验优先</strong>：阻止善意Agent会损害真实用户的体验</li>
+<li><strong>效率提升需求</strong>：Agent可以提高平台运营效率，降低服务成本</li>
+<li><strong>竞争压力驱动</strong>：支持Agent成为平台差异化竞争的新维度</li>
+<li><strong>监管合规要求</strong>：无障碍访问等法规要求平台提供程序化接口</li>
+</ol>
+<h3 id="1112">11.1.2 用户需求的多样化驱动</h3>
+<p>不同用户群体对Agent服务有着迫切需求，这些需求推动着平台必须重新思考服务边界：</p>
+<p><strong>特殊群体的刚需</strong>：</p>
+<div class="codehilite"><pre><span></span><code>用户类型        Agent需求                 价值主张
+───────────────────────────────────────────────────
+视障用户    →  屏幕阅读器集成      →   无障碍访问
+老年用户    →  语音助手下单        →   降低使用门槛  
+忙碌白领    →  自动订餐规划        →   时间节省
+小微商家    →  自动接单系统        →   人力成本降低
+企业客户    →  批量订餐管理        →   流程自动化
+</code></pre></div>
+
+<p><strong>典型使用场景分析</strong>：</p>
+<ol>
+<li>
+<p><strong>辅助技术场景</strong>：
+   - 屏幕阅读器需要结构化的数据接口
+   - 语音助手需要简化的交互流程
+   - 手势识别需要明确的操作反馈</p>
+</li>
+<li>
+<p><strong>效率提升场景</strong>：
+   - 定时自动下单（如每日午餐）
+   - 基于日程的智能订餐建议
+   - 团餐的批量下单与管理</p>
+</li>
+<li>
+<p><strong>商家自动化场景</strong>：
+   - 库存与菜单的自动同步
+   - 订单的自动确认与分配
+   - 高峰期的智能调度</p>
+</li>
+</ol>
+<h3 id="1113">11.1.3 技术成熟度的提升</h3>
+<p>技术进步为Agent服务提供了坚实基础：</p>
+<p><strong>关键技术突破</strong>：</p>
+<div class="codehilite"><pre><span></span><code>技术维度              2020前              2024现状
+─────────────────────────────────────────────────────
+身份认证    │   简单Token      →    零知识证明、DID
+意图理解    │   规则匹配      →    LLM语义理解  
+行为分析    │   统计特征      →    深度序列模型
+信任评估    │   黑白名单      →    动态信任网络
+接口设计    │   REST API      →    GraphQL/gRPC
+限流策略    │   固定阈值      →    自适应算法
+</code></pre></div>
+
+<p><strong>技术栈的现代化</strong>：</p>
+<ol>
+<li><strong>身份层</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>DID（去中心化身份）
+     │
+     ▼
+可验证凭证（VC）
+     │
+     ▼
+零知识证明（ZKP）
+</code></pre></div>
+
+<ol start="2">
+<li><strong>理解层</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>自然语言 → LLM编码 → 意图识别 → 任务规划
+             ↓
+        向量数据库
+             ↓  
+        相似度匹配
+</code></pre></div>
+
+<ol start="3">
+<li><strong>执行层</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>任务分解 → 并行调度 → 结果聚合 → 反馈学习
+     ↓         ↓         ↓         ↓
+  微服务   消息队列   缓存层    ML Pipeline
+</code></pre></div>
+
+<h3 id="1114">11.1.4 商业价值的重新认识</h3>
+<p>从纯粹的成本中心到潜在的增长引擎，Agent服务的商业价值被重新定义：</p>
+<p><strong>价值创造模型</strong>：</p>
+<div class="codehilite"><pre><span></span><code>                    Agent生态价值链
+    ┌─────────────────────────────────────────────┐
+    │                                             │
+    │   开发者  →  Agent  →  用户  →  平台        │
+    │     ↓         ↓        ↓        ↓          │
+    │   创新     效率     体验     增长          │
+    │                                             │
+    └─────────────────────────────────────────────┘
+</code></pre></div>
+
+<p><strong>量化收益分析</strong>：</p>
+<ol>
+<li>
+<p><strong>直接收益</strong>：
+   - <strong>交易量提升</strong>：Agent驱动的自动下单占比可达15-20%
+   - <strong>客单价增长</strong>：智能推荐提升客单价8-12%
+   - <strong>运营成本降低</strong>：客服成本降低30-40%</p>
+</li>
+<li>
+<p><strong>间接收益</strong>：
+   - <strong>用户粘性</strong>：集成Agent的用户留存率提升25%
+   - <strong>生态繁荣</strong>：第三方开发者贡献创新场景
+   - <strong>数据价值</strong>：Agent交互产生高质量训练数据</p>
+</li>
+<li>
+<p><strong>战略收益</strong>：
+   - <strong>平台护城河</strong>：Agent生态形成网络效应
+   - <strong>标准制定权</strong>：定义行业Agent服务标准
+   - <strong>未来布局</strong>：为AGI时代做好准备</p>
+</li>
+</ol>
+<p><strong>ROI计算框架</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">calculate_agent_roi</span><span class="p">(</span><span class="n">metrics</span><span class="p">):</span>
+    <span class="c1"># 收益部分</span>
+    <span class="n">revenue_increase</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;额外订单量&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;平均客单价&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;平台抽成率&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;客单价提升&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;总订单量&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;平台抽成率&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">cost_savings</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;客服成本节省&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;运营效率提升价值&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 成本部分  </span>
+    <span class="n">development_cost</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;研发投入&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;基础设施成本&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">operation_cost</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;带宽成本增加&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;计算资源成本&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;安全防护成本&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ROI计算</span>
+    <span class="n">total_benefit</span> <span class="o">=</span> <span class="n">revenue_increase</span> <span class="o">+</span> <span class="n">cost_savings</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="n">development_cost</span> <span class="o">+</span> <span class="n">operation_cost</span>
+    <span class="n">roi</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_benefit</span> <span class="o">-</span> <span class="n">total_cost</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_cost</span> <span class="o">*</span> <span class="mi">100</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;ROI&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">roi</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">%&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;回收期&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">total_cost</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">total_benefit</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">个月&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;年化收益&#39;</span><span class="p">:</span> <span class="n">total_benefit</span> <span class="o">-</span> <span class="n">total_cost</span> <span class="o">*</span> <span class="mf">0.15</span>  <span class="c1"># 考虑资金成本</span>
+    <span class="p">}</span>
+</code></pre></div>
+
+<p><strong>长期战略价值</strong>：</p>
+<p>随着AI技术的发展，Agent将成为用户与数字世界交互的主要方式。平台如果不能很好地服务Agent，就如同20年前不支持移动端一样，将失去未来的入口。美团通过构建Agent友好的服务体系，不仅解决当下的用户需求，更是在为AI原生的未来布局。</p>
+<div class="codehilite"><pre><span></span><code>        传统交互                    Agent时代
+    ┌────────────┐            ┌────────────┐
+    │            │            │            │
+    │  用户→界面  │   ────►    │  Agent→API │
+    │            │            │            │
+    └────────────┘            └────────────┘
+         ↓                           ↓
+    人工操作为主                 自动化为主
+    同步交互                     异步协作
+    单点接触                     全链路代理
+</code></pre></div>
+
+<h2 id="112-agent">11.2 Agent身份认证与信任体系</h2>
+<p>构建可靠的Agent身份认证和信任体系是平台开放服务的基础。不同于传统的用户认证，Agent认证需要考虑其代理性质、技术能力、行为模式等多个维度。</p>
+<h3 id="1121-agent">11.2.1 Agent注册与认证流程</h3>
+<p><strong>多层次的身份体系架构</strong>：</p>
+<div class="codehilite"><pre><span></span><code>                    Agent身份认证体系
+    ┌──────────────────────────────────────────────┐
+    │                                              │
+    │  L0: 匿名Agent（无需注册，严格限制）           │
+    │  L1: 基础认证（邮箱验证，基础权限）           │
+    │  L2: 实名认证（身份验证，标准权限）           │  
+    │  L3: 企业认证（资质审核，高级权限）           │
+    │  L4: 平台认证（官方合作，特权访问）           │
+    │                                              │
+    └──────────────────────────────────────────────┘
+</code></pre></div>
+
+<p><strong>注册流程设计</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">AgentRegistration</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">identity_verifier</span> <span class="o">=</span> <span class="n">IdentityVerifier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capability_assessor</span> <span class="o">=</span> <span class="n">CapabilityAssessor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compliance_checker</span> <span class="o">=</span> <span class="n">ComplianceChecker</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">register_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">):</span>
+        <span class="c1"># 步骤1：基础信息验证</span>
+        <span class="n">basic_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;agent_name&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;agent_type&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>  <span class="c1"># personal/enterprise/platform</span>
+            <span class="s1">&#39;purpose&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;purpose&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;owner_id&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;owner_id&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;technical_spec&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;tech_spec&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 步骤2：身份验证</span>
+        <span class="k">if</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;enterprise&#39;</span><span class="p">:</span>
+            <span class="n">cert_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_enterprise_cert</span><span class="p">(</span><span class="n">application</span><span class="p">[</span><span class="s1">&#39;business_license&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cert_result</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;rejected&#39;</span><span class="p">,</span> <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;企业资质验证失败&#39;</span><span class="p">}</span>
+
+        <span class="c1"># 步骤3：技术能力评估</span>
+        <span class="n">capability_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capability_assessor</span><span class="o">.</span><span class="n">assess</span><span class="p">({</span>
+            <span class="s1">&#39;api_version&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;api_version&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;supported_protocols&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;protocols&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;rate_limit_compliance&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;rate_limit_test&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;error_handling&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;error_handling_test&#39;</span><span class="p">]</span>
+        <span class="p">})</span>
+
+        <span class="c1"># 步骤4：合规性检查</span>
+        <span class="n">compliance_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compliance_checker</span><span class="o">.</span><span class="n">check</span><span class="p">({</span>
+            <span class="s1">&#39;data_usage_policy&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;data_policy&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;privacy_statement&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;privacy&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;terms_acceptance&#39;</span><span class="p">:</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;terms_accepted&#39;</span><span class="p">]</span>
+        <span class="p">})</span>
+
+        <span class="c1"># 步骤5：生成Agent凭证</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">capability_score</span> <span class="o">&gt;</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">compliance_result</span><span class="p">[</span><span class="s1">&#39;passed&#39;</span><span class="p">]]):</span>
+            <span class="n">agent_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_agent_id</span><span class="p">(</span><span class="n">basic_info</span><span class="p">)</span>
+            <span class="n">credentials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">issue_credentials</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">application</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;approved&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;agent_id&#39;</span><span class="p">:</span> <span class="n">agent_id</span><span class="p">,</span>
+                <span class="s1">&#39;api_key&#39;</span><span class="p">:</span> <span class="n">credentials</span><span class="p">[</span><span class="s1">&#39;api_key&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;secret&#39;</span><span class="p">:</span> <span class="n">credentials</span><span class="p">[</span><span class="s1">&#39;secret&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;trust_level&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_initial_trust</span><span class="p">(</span><span class="n">application</span><span class="p">),</span>
+                <span class="s1">&#39;permissions&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_permissions</span><span class="p">(</span><span class="n">application</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;rejected&#39;</span><span class="p">,</span> <span class="s1">&#39;reasons&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_rejection_reasons</span><span class="p">()}</span>
+
+    <span class="k">def</span> <span class="nf">generate_agent_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+        <span class="c1"># 生成全局唯一的Agent ID</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="s1">&#39;agent.meituan.com&#39;</span>
+        <span class="n">unique_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;agent_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;owner_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;agent_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;agt_</span><span class="si">{</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">unique_string</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+
+<p><strong>凭证管理机制</strong>：</p>
+<div class="codehilite"><pre><span></span><code>凭证类型        用途                  有效期        刷新机制
+────────────────────────────────────────────────────────
+API Key     身份标识              永久         手动重置
+Secret      签名密钥              永久         定期轮换
+Access Token 访问令牌             1小时        自动刷新
+Refresh Token 刷新令牌            30天         重新认证
+Session Token 会话令牌            15分钟       活动延长
+</code></pre></div>
+
+<h3 id="1122">11.2.2 信任等级评估模型</h3>
+<p><strong>多维度信任评分体系</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">TrustScoreModel</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;identity_verification&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>   <span class="c1"># 身份认证强度</span>
+            <span class="s1">&#39;historical_behavior&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>     <span class="c1"># 历史行为表现</span>
+            <span class="s1">&#39;technical_compliance&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>    <span class="c1"># 技术规范遵守</span>
+            <span class="s1">&#39;user_feedback&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>          <span class="c1"># 用户反馈评价</span>
+            <span class="s1">&#39;security_incidents&#39;</span><span class="p">:</span> <span class="mf">0.15</span>      <span class="c1"># 安全事件记录</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">calculate_trust_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># 身份认证维度</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;identity_verification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_identity_score</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 历史行为维度</span>
+        <span class="n">behavior_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_behavior_metrics</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;historical_behavior&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_behavior_score</span><span class="p">(</span><span class="n">behavior_metrics</span><span class="p">)</span>
+
+        <span class="c1"># 技术合规维度</span>
+        <span class="n">compliance_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compliance_metrics</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;technical_compliance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_compliance_score</span><span class="p">(</span><span class="n">compliance_metrics</span><span class="p">)</span>
+
+        <span class="c1"># 用户反馈维度</span>
+        <span class="n">feedback_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user_feedback</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;user_feedback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_feedback_score</span><span class="p">(</span><span class="n">feedback_data</span><span class="p">)</span>
+
+        <span class="c1"># 安全事件维度</span>
+        <span class="n">incident_records</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_security_incidents</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;security_incidents&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_security_score</span><span class="p">(</span><span class="n">incident_records</span><span class="p">)</span>
+
+        <span class="c1"># 加权计算总分</span>
+        <span class="n">total_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;total_score&#39;</span><span class="p">:</span> <span class="n">total_score</span><span class="p">,</span>
+            <span class="s1">&#39;dimension_scores&#39;</span><span class="p">:</span> <span class="n">scores</span><span class="p">,</span>
+            <span class="s1">&#39;trust_level&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_to_level</span><span class="p">(</span><span class="n">total_score</span><span class="p">),</span>
+            <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">calculate_behavior_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;基于历史行为计算得分&quot;&quot;&quot;</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;request_success_rate&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;success_count&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;total_requests&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s1">&#39;error_rate&#39;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;error_count&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;total_requests&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="s1">&#39;rate_limit_compliance&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;rate_limit_violations&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;api_usage_pattern&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_usage_pattern</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;api_calls&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;data_access_pattern&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_data_pattern</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;data_access&#39;</span><span class="p">])</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 异常检测</span>
+        <span class="n">anomaly_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_anomalies</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+
+        <span class="c1"># 综合评分</span>
+        <span class="n">behavior_score</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s1">&#39;request_success_rate&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.25</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s1">&#39;error_rate&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.25</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s1">&#39;rate_limit_compliance&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.2</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s1">&#39;api_usage_pattern&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.15</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s1">&#39;data_access_pattern&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.15</span> <span class="o">-</span>
+            <span class="n">anomaly_score</span> <span class="o">*</span> <span class="mf">0.3</span>  <span class="c1"># 异常行为扣分</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">behavior_score</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">score_to_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;将数值分数映射到信任等级&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mf">0.9</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;platinum&#39;</span>  <span class="c1"># 白金级</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mf">0.75</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;gold&#39;</span>      <span class="c1"># 黄金级</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mf">0.6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;silver&#39;</span>    <span class="c1"># 白银级</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mf">0.4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;bronze&#39;</span>    <span class="c1"># 青铜级</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;restricted&#39;</span> <span class="c1"># 受限级</span>
+</code></pre></div>
+
+<p><strong>信任等级与权限映射</strong>：</p>
+<div class="codehilite"><pre><span></span><code>信任等级    基础配额(QPS)   批量操作   数据访问   特殊功能
+─────────────────────────────────────────────────────────
+Platinum      10000         1000条     完整      实时推送
+Gold          5000          500条      标准      WebSocket
+Silver        1000          100条      基础      长轮询
+Bronze        100           20条       受限      标准轮询
+Restricted    10            禁用       最小      仅查询
+</code></pre></div>
+
+<h3 id="1123">11.2.3 动态信任分调整机制</h3>
+<p><strong>实时调整算法</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">DynamicTrustAdjustment</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adjustment_rules</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_adjustment_rules</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+    <span class="k">def</span> <span class="nf">adjust_trust_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">current_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_score</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">adjustment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_adjustment</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+        <span class="c1"># 应用动量平滑</span>
+        <span class="n">historical_trend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_historical_trend</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">smoothed_adjustment</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span> <span class="o">*</span> <span class="n">historical_trend</span> <span class="o">+</span> 
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span><span class="p">)</span> <span class="o">*</span> <span class="n">adjustment</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 计算新分数</span>
+        <span class="n">new_score</span> <span class="o">=</span> <span class="n">current_score</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">*</span> <span class="n">smoothed_adjustment</span>
+        <span class="n">new_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">new_score</span><span class="p">))</span>  <span class="c1"># 限制在[0,1]范围</span>
+
+        <span class="c1"># 记录调整历史</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_adjustment</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;event&#39;</span><span class="p">:</span> <span class="n">event</span><span class="p">,</span>
+            <span class="s1">&#39;old_score&#39;</span><span class="p">:</span> <span class="n">current_score</span><span class="p">,</span>
+            <span class="s1">&#39;new_score&#39;</span><span class="p">:</span> <span class="n">new_score</span><span class="p">,</span>
+            <span class="s1">&#39;adjustment&#39;</span><span class="p">:</span> <span class="n">adjustment</span><span class="p">,</span>
+            <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_adjustment_reason</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="p">})</span>
+
+        <span class="c1"># 触发级别变更通知</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">level_changed</span><span class="p">(</span><span class="n">current_score</span><span class="p">,</span> <span class="n">new_score</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">notify_level_change</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">new_score</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_score</span>
+
+    <span class="k">def</span> <span class="nf">calculate_adjustment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;根据事件类型计算信任分调整值&quot;&quot;&quot;</span>
+        <span class="n">adjustments</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># 正向事件</span>
+            <span class="s1">&#39;successful_transaction&#39;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="s1">&#39;positive_user_feedback&#39;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.02</span><span class="p">,</span>
+            <span class="s1">&#39;security_contribution&#39;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.05</span><span class="p">,</span>    <span class="c1"># 报告漏洞等</span>
+            <span class="s1">&#39;consistent_good_behavior&#39;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.03</span><span class="p">,</span>
+
+            <span class="c1"># 负向事件</span>
+            <span class="s1">&#39;rate_limit_violation&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.05</span><span class="p">,</span>
+            <span class="s1">&#39;api_abuse_detected&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.10</span><span class="p">,</span>
+            <span class="s1">&#39;user_complaint&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.08</span><span class="p">,</span>
+            <span class="s1">&#39;security_incident&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.20</span><span class="p">,</span>
+            <span class="s1">&#39;data_breach_attempt&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.50</span><span class="p">,</span>
+
+            <span class="c1"># 中性事件</span>
+            <span class="s1">&#39;normal_operation&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;maintenance_period&#39;</span><span class="p">:</span> <span class="mi">0</span>
+        <span class="p">}</span>
+
+        <span class="n">base_adjustment</span> <span class="o">=</span> <span class="n">adjustments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># 考虑事件严重程度</span>
+        <span class="n">severity_multiplier</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;severity&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># 考虑时间衰减（recent events have more impact）</span>
+        <span class="n">time_decay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_time_decay</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">base_adjustment</span> <span class="o">*</span> <span class="n">severity_multiplier</span> <span class="o">*</span> <span class="n">time_decay</span>
+
+    <span class="k">def</span> <span class="nf">emergency_trust_freeze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;紧急冻结信任分&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_agent_status</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="s1">&#39;frozen&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trust_score</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notify_security_team</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_security_event</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="s1">&#39;trust_freeze&#39;</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="1124">11.2.4 跨平台身份互认</h3>
+<p><strong>联邦身份认证架构</strong>：</p>
+<div class="codehilite"><pre><span></span><code>         美团平台                    第三方平台
+    ┌──────────────┐            ┌──────────────┐
+    │              │            │              │
+    │  Agent认证   │◄─────────►│  OAuth 2.0   │
+    │   中心       │            │   Provider   │
+    │              │            │              │
+    └──────────────┘            └──────────────┘
+           │                            │
+           ▼                            ▼
+    ┌──────────────┐            ┌──────────────┐
+    │   信任映射   │            │   信誉共享   │
+    │    规则      │◄─────────►│    协议      │
+    └──────────────┘            └──────────────┘
+</code></pre></div>
+
+<p><strong>跨平台信任映射</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">CrossPlatformTrustMapper</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">platform_mappings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;google&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span> <span class="s1">&#39;api&#39;</span><span class="p">:</span> <span class="s1">&#39;oauth2.googleapis.com&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;microsoft&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span> <span class="s1">&#39;api&#39;</span><span class="p">:</span> <span class="s1">&#39;login.microsoftonline.com&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;github&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s1">&#39;api&#39;</span><span class="p">:</span> <span class="s1">&#39;github.com/login/oauth&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;wechat&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span> <span class="s1">&#39;api&#39;</span><span class="p">:</span> <span class="s1">&#39;open.weixin.qq.com&#39;</span><span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">import_external_trust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">external_identity</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;导入外部平台的信任凭证&quot;&quot;&quot;</span>
+        <span class="n">platform</span> <span class="o">=</span> <span class="n">external_identity</span><span class="p">[</span><span class="s1">&#39;platform&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">platform</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">platform_mappings</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># 验证外部身份</span>
+        <span class="n">verification_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_external_identity</span><span class="p">(</span>
+            <span class="n">platform</span><span class="p">,</span>
+            <span class="n">external_identity</span><span class="p">[</span><span class="s1">&#39;token&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verification_result</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># 获取外部信誉数据</span>
+        <span class="n">external_reputation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_external_reputation</span><span class="p">(</span>
+            <span class="n">platform</span><span class="p">,</span>
+            <span class="n">external_identity</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 转换为内部信任分</span>
+        <span class="n">internal_trust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_internal_trust</span><span class="p">(</span>
+            <span class="n">platform</span><span class="p">,</span>
+            <span class="n">external_reputation</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 创建关联记录</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_identity_link</span><span class="p">({</span>
+            <span class="s1">&#39;internal_agent_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_internal_id</span><span class="p">(),</span>
+            <span class="s1">&#39;external_platform&#39;</span><span class="p">:</span> <span class="n">platform</span><span class="p">,</span>
+            <span class="s1">&#39;external_id&#39;</span><span class="p">:</span> <span class="n">external_identity</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;trust_score&#39;</span><span class="p">:</span> <span class="n">internal_trust</span><span class="p">,</span>
+            <span class="s1">&#39;verification_time&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="s1">&#39;expiry&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+        <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">internal_trust</span>
+
+    <span class="k">def</span> <span class="nf">convert_to_internal_trust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">,</span> <span class="n">external_rep</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;将外部信誉转换为内部信任分&quot;&quot;&quot;</span>
+        <span class="n">platform_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">platform_mappings</span><span class="p">[</span><span class="n">platform</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+
+        <span class="c1"># 标准化外部分数</span>
+        <span class="n">normalized_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_external_score</span><span class="p">(</span><span class="n">platform</span><span class="p">,</span> <span class="n">external_rep</span><span class="p">)</span>
+
+        <span class="c1"># 应用平台权重</span>
+        <span class="n">weighted_score</span> <span class="o">=</span> <span class="n">normalized_score</span> <span class="o">*</span> <span class="n">platform_weight</span>
+
+        <span class="c1"># 应用初始折扣（新导入的信任需要本地验证）</span>
+        <span class="n">initial_discount</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+        <span class="k">return</span> <span class="n">weighted_score</span> <span class="o">*</span> <span class="n">initial_discount</span>
+</code></pre></div>
+
+<p><strong>去中心化身份（DID）支持</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">DIDIntegration</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">did_resolver</span> <span class="o">=</span> <span class="n">DIDResolver</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verifiable_credentials</span> <span class="o">=</span> <span class="n">VCVerifier</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">verify_did_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">did_document</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;验证基于DID的Agent身份&quot;&quot;&quot;</span>
+        <span class="c1"># 解析DID</span>
+        <span class="n">did</span> <span class="o">=</span> <span class="n">did_document</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>  <span class="c1"># 如: did:meituan:agent:12345</span>
+
+        <span class="c1"># 验证DID文档签名</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_signature</span><span class="p">(</span><span class="n">did_document</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;valid&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;签名验证失败&#39;</span><span class="p">}</span>
+
+        <span class="c1"># 验证可验证凭证</span>
+        <span class="n">credentials</span> <span class="o">=</span> <span class="n">did_document</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verifiableCredential&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">verified_claims</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">credential</span> <span class="ow">in</span> <span class="n">credentials</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verifiable_credentials</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">credential</span><span class="p">):</span>
+                <span class="n">verified_claims</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">credential</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;issuer&#39;</span><span class="p">:</span> <span class="n">credential</span><span class="p">[</span><span class="s1">&#39;issuer&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;claims&#39;</span><span class="p">:</span> <span class="n">credential</span><span class="p">[</span><span class="s1">&#39;credentialSubject&#39;</span><span class="p">]</span>
+                <span class="p">})</span>
+
+        <span class="c1"># 构建信任档案</span>
+        <span class="n">trust_profile</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;did&#39;</span><span class="p">:</span> <span class="n">did</span><span class="p">,</span>
+            <span class="s1">&#39;verified_claims&#39;</span><span class="p">:</span> <span class="n">verified_claims</span><span class="p">,</span>
+            <span class="s1">&#39;trust_score&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_did_trust</span><span class="p">(</span><span class="n">verified_claims</span><span class="p">),</span>
+            <span class="s1">&#39;capabilities&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_capabilities</span><span class="p">(</span><span class="n">verified_claims</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;valid&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">:</span> <span class="n">trust_profile</span><span class="p">}</span>
+</code></pre></div>
+
+<h2 id="113-agent">11.3 善意Agent与恶意机器人的区分</h2>
+<h3 id="1131">11.3.1 行为模式特征分析</h3>
+<h3 id="1132">11.3.2 意图识别与分类</h3>
+<h3 id="1133">11.3.3 多维度综合评判</h3>
+<h3 id="1134">11.3.4 误判处理与申诉机制</h3>
+<h2 id="114-api">11.4 API速率限制的智能化调整</h2>
+<h3 id="1141">11.4.1 基础限流策略设计</h3>
+<h3 id="1142">11.4.2 信任度关联的动态配额</h3>
+<h3 id="1143">11.4.3 业务场景的差异化限制</h3>
+<h3 id="1144">11.4.4 突发流量的弹性处理</h3>
+<h2 id="115-agent">11.5 Agent友好的接口设计</h2>
+<h3 id="1151">11.5.1 标准化协议支持</h3>
+<h3 id="1152">11.5.2 批量操作接口优化</h3>
+<h3 id="1153">11.5.3 长连接与订阅机制</h3>
+<h3 id="1154">11.5.4 错误处理与重试策略</h3>
+<h2 id="116">11.6 用户授权与代理机制</h2>
+<h3 id="1161-oauth-20">11.6.1 OAuth 2.0授权框架实现</h3>
+<h3 id="1162">11.6.2 权限粒度控制</h3>
+<h3 id="1163">11.6.3 授权有效期管理</h3>
+<h3 id="1164">11.6.4 审计日志与追溯</h3>
+<h2 id="117">11.7 合规性框架与隐私保护</h2>
+<h3 id="1171">11.7.1 数据最小化原则</h3>
+<h3 id="1172">11.7.2 用户知情权保障</h3>
+<h3 id="1173">11.7.3 数据安全传输与存储</h3>
+<h3 id="1174">11.7.4 跨境数据流动合规</h3>
+<h2 id="118-agent">11.8 Agent生态的培育与治理</h2>
+<h3 id="1181">11.8.1 开发者激励机制</h3>
+<h3 id="1182">11.8.2 质量认证体系</h3>
+<h3 id="1183">11.8.3 违规行为处罚</h3>
+<h3 id="1184">11.8.4 社区共建与反馈</h3>
+<h2 id="_3">本章小结</h2>
+<h2 id="_4">练习题</h2>
+<h2 id="gotchas">常见陷阱与错误（Gotchas）</h2>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter10.html" class="nav-link prev">← 第10章：反机器人滥用与评论真实性保障</a><a href="CLAUDE.html" class="nav-link next">1) 图灵算法平台（算法基础设施） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>
