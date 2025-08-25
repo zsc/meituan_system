@@ -128,6 +128,34 @@
                     </div>
                 
                     <div class="tree-item " >
+                        <a href="chapter12.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第12章：美团App与超级App架构</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter13.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第13章：MCP服务与多智能体协同</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter14.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第14章：系统集成与全链路优化</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter15.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第15章：LLM/Agent 能力体系与实施路线图</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
                         <a href="CLAUDE.html" class="tree-link">
                             <span class="tree-icon">📄</span>
                             <span class="tree-title">1) 图灵算法平台（算法基础设施）</span>
@@ -727,15 +755,1200 @@ Restricted    10            禁用       最小      仅查询
 </code></pre></div>
 
 <h2 id="113-agent">11.3 善意Agent与恶意机器人的区分</h2>
+<p>区分善意Agent与恶意机器人是平台安全的核心挑战。传统的反爬虫技术往往采用"宁可错杀一千，不可放过一个"的策略，但在Agent服务时代，我们需要更精细的识别机制，既要保护平台安全，又要避免误伤合法Agent。</p>
 <h3 id="1131">11.3.1 行为模式特征分析</h3>
+<p><strong>行为特征的多维度刻画</strong>：</p>
+<div class="codehilite"><pre><span></span><code>                    行为特征维度分析
+    ┌────────────────────────────────────────────────┐
+    │                                                │
+    │   时序特征  ←→  空间特征  ←→  内容特征       │
+    │       ↓            ↓            ↓             │
+    │   频率分布      访问路径      数据模式        │
+    │       ↓            ↓            ↓             │
+    │   周期规律      地理分布      语义关联        │
+    │                                                │
+    └────────────────────────────────────────────────┘
+</code></pre></div>
+
+<p><strong>善意Agent的典型行为模式</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">BenignAgentPatterns</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patterns</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;time_patterns&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;request_interval&#39;</span><span class="p">:</span> <span class="s1">&#39;regular_with_variance&#39;</span><span class="p">,</span>  <span class="c1"># 规律但有自然波动</span>
+                <span class="s1">&#39;active_hours&#39;</span><span class="p">:</span> <span class="s1">&#39;business_hours_aligned&#39;</span><span class="p">,</span>     <span class="c1"># 符合业务时间</span>
+                <span class="s1">&#39;burst_behavior&#39;</span><span class="p">:</span> <span class="s1">&#39;task_driven&#39;</span><span class="p">,</span>              <span class="c1"># 突发但有业务逻辑</span>
+                <span class="s1">&#39;retry_pattern&#39;</span><span class="p">:</span> <span class="s1">&#39;exponential_backoff&#39;</span>        <span class="c1"># 规范的重试策略</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;access_patterns&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;api_usage&#39;</span><span class="p">:</span> <span class="s1">&#39;consistent_subset&#39;</span><span class="p">,</span>             <span class="c1"># 稳定使用API子集</span>
+                <span class="s1">&#39;data_access&#39;</span><span class="p">:</span> <span class="s1">&#39;authorized_scope&#39;</span><span class="p">,</span>            <span class="c1"># 访问授权范围内数据</span>
+                <span class="s1">&#39;navigation&#39;</span><span class="p">:</span> <span class="s1">&#39;logical_flow&#39;</span><span class="p">,</span>                 <span class="c1"># 逻辑连贯的访问路径</span>
+                <span class="s1">&#39;error_handling&#39;</span><span class="p">:</span> <span class="s1">&#39;graceful_degradation&#39;</span>      <span class="c1"># 优雅的错误处理</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;content_patterns&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;query_diversity&#39;</span><span class="p">:</span> <span class="s1">&#39;business_relevant&#39;</span><span class="p">,</span>       <span class="c1"># 查询内容业务相关</span>
+                <span class="s1">&#39;data_correlation&#39;</span><span class="p">:</span> <span class="s1">&#39;contextual&#39;</span><span class="p">,</span>             <span class="c1"># 数据请求有上下文</span>
+                <span class="s1">&#39;payload_structure&#39;</span><span class="p">:</span> <span class="s1">&#39;well_formed&#39;</span><span class="p">,</span>           <span class="c1"># 规范的请求格式</span>
+                <span class="s1">&#39;response_handling&#39;</span><span class="p">:</span> <span class="s1">&#39;complete_processing&#39;</span>    <span class="c1"># 完整处理响应</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">analyze_agent_behavior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_logs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;分析Agent行为是否符合善意模式&quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># 时序分析</span>
+        <span class="n">time_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_time_features</span><span class="p">(</span><span class="n">agent_logs</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;time_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_time_pattern</span><span class="p">(</span><span class="n">time_features</span><span class="p">)</span>
+
+        <span class="c1"># 访问模式分析</span>
+        <span class="n">access_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_access_features</span><span class="p">(</span><span class="n">agent_logs</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;access_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_access_pattern</span><span class="p">(</span><span class="n">access_features</span><span class="p">)</span>
+
+        <span class="c1"># 内容分析</span>
+        <span class="n">content_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_content_features</span><span class="p">(</span><span class="n">agent_logs</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;content_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_content_pattern</span><span class="p">(</span><span class="n">content_features</span><span class="p">)</span>
+
+        <span class="c1"># 综合评分</span>
+        <span class="n">benign_probability</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_benign_probability</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;is_benign&#39;</span><span class="p">:</span> <span class="n">benign_probability</span> <span class="o">&gt;</span> <span class="mf">0.7</span><span class="p">,</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">benign_probability</span><span class="p">,</span>
+            <span class="s1">&#39;evidence&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_evidence</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span>
+            <span class="s1">&#39;recommendations&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_recommendations</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">extract_time_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;提取时序特征&quot;&quot;&quot;</span>
+        <span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">log</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">logs</span><span class="p">]</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="n">timestamps</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">timestamps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;mean_interval&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span>
+            <span class="s1">&#39;std_interval&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span>
+            <span class="s1">&#39;periodicity&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_periodicity</span><span class="p">(</span><span class="n">timestamps</span><span class="p">),</span>
+            <span class="s1">&#39;burst_count&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_bursts</span><span class="p">(</span><span class="n">timestamps</span><span class="p">),</span>
+            <span class="s1">&#39;daily_pattern&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_daily_pattern</span><span class="p">(</span><span class="n">timestamps</span><span class="p">),</span>
+            <span class="s1">&#39;weekly_pattern&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_weekly_pattern</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">evaluate_time_pattern</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;评估时间模式的善意程度&quot;&quot;&quot;</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="c1"># 检查请求间隔</span>
+        <span class="k">if</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;mean_interval&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># 小于100ms</span>
+            <span class="n">score</span> <span class="o">*=</span> <span class="mf">0.3</span>  <span class="c1"># 过于频繁，可能是恶意</span>
+        <span class="k">elif</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;mean_interval&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>  <span class="c1"># 大于1秒</span>
+            <span class="n">score</span> <span class="o">*=</span> <span class="mf">1.0</span>  <span class="c1"># 正常间隔</span>
+
+        <span class="c1"># 检查间隔稳定性</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;std_interval&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;mean_interval&#39;</span><span class="p">]</span>  <span class="c1"># 变异系数</span>
+        <span class="k">if</span> <span class="n">cv</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># 过于规律</span>
+            <span class="n">score</span> <span class="o">*=</span> <span class="mf">0.5</span>  <span class="c1"># 可能是简单脚本</span>
+        <span class="k">elif</span> <span class="n">cv</span> <span class="o">&gt;</span> <span class="mf">2.0</span><span class="p">:</span>  <span class="c1"># 过于随机</span>
+            <span class="n">score</span> <span class="o">*=</span> <span class="mf">0.7</span>  <span class="c1"># 可能是伪装</span>
+
+        <span class="c1"># 检查周期性</span>
+        <span class="k">if</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;periodicity&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>  <span class="c1"># 强周期性</span>
+            <span class="n">score</span> <span class="o">*=</span> <span class="mf">0.9</span>  <span class="c1"># 正常的定时任务</span>
+
+        <span class="k">return</span> <span class="n">score</span>
+</code></pre></div>
+
+<p><strong>恶意机器人的行为特征</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">MaliciousRobotPatterns</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suspicious_patterns</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;scraping_behavior&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;sequential_id_access&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>      <span class="c1"># 顺序遍历ID</span>
+                <span class="s1">&#39;full_catalog_scan&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>         <span class="c1"># 全量扫描</span>
+                <span class="s1">&#39;no_user_context&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>           <span class="c1"># 无用户上下文</span>
+                <span class="s1">&#39;ignore_response&#39;</span><span class="p">:</span> <span class="kc">True</span>            <span class="c1"># 不处理响应内容</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;attack_behavior&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;credential_stuffing&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>       <span class="c1"># 撞库攻击</span>
+                <span class="s1">&#39;parameter_fuzzing&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>         <span class="c1"># 参数模糊测试</span>
+                <span class="s1">&#39;injection_attempts&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>        <span class="c1"># 注入尝试</span>
+                <span class="s1">&#39;privilege_escalation&#39;</span><span class="p">:</span> <span class="kc">True</span>       <span class="c1"># 权限提升</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;abuse_behavior&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;fake_order_creation&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>       <span class="c1"># 虚假订单</span>
+                <span class="s1">&#39;inventory_hoarding&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>        <span class="c1"># 库存占用</span>
+                <span class="s1">&#39;price_manipulation&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>        <span class="c1"># 价格操纵</span>
+                <span class="s1">&#39;review_bombing&#39;</span><span class="p">:</span> <span class="kc">True</span>             <span class="c1"># 评论轰炸</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">detect_malicious_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">behavior_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;检测恶意行为模式&quot;&quot;&quot;</span>
+        <span class="n">detections</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># 爬虫检测</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scraping</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">):</span>
+            <span class="n">detections</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;scraping&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_scraping_confidence</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">),</span>
+                <span class="s1">&#39;evidence&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">collect_scraping_evidence</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">)</span>
+            <span class="p">})</span>
+
+        <span class="c1"># 攻击检测</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_attacking</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">):</span>
+            <span class="n">detections</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;attack&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;severity&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">assess_attack_severity</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">),</span>
+                <span class="s1">&#39;attack_vector&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify_attack_vector</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">)</span>
+            <span class="p">})</span>
+
+        <span class="c1"># 滥用检测</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_abusing</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">):</span>
+            <span class="n">detections</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;abuse&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;impact&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_abuse_impact</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">),</span>
+                <span class="s1">&#39;pattern&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_abuse_pattern</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">)</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;is_malicious&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;detections&#39;</span><span class="p">:</span> <span class="n">detections</span><span class="p">,</span>
+            <span class="s1">&#39;risk_level&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_risk_level</span><span class="p">(</span><span class="n">detections</span><span class="p">),</span>
+            <span class="s1">&#39;recommended_action&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">recommend_action</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">is_scraping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;判断是否为爬虫行为&quot;&quot;&quot;</span>
+        <span class="n">indicators</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;sequential_access&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sequential_pattern</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+            <span class="s1">&#39;coverage_ratio&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_coverage_ratio</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+            <span class="s1">&#39;response_time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_response_time</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+            <span class="s1">&#39;user_agent&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_user_agent</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+            <span class="s1">&#39;referer_chain&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_referer_chain</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 加权评分</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;sequential_access&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+            <span class="s1">&#39;coverage_ratio&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+            <span class="s1">&#39;response_time&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+            <span class="s1">&#39;user_agent&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+            <span class="s1">&#39;referer_chain&#39;</span><span class="p">:</span> <span class="mf">0.15</span>
+        <span class="p">}</span>
+
+        <span class="n">score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">indicators</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">indicators</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="mf">0.6</span>
+</code></pre></div>
+
 <h3 id="1132">11.3.2 意图识别与分类</h3>
+<p><strong>基于LLM的意图理解</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">IntentClassification</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">llm_analyzer</span> <span class="o">=</span> <span class="n">LLMIntentAnalyzer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rule_engine</span> <span class="o">=</span> <span class="n">RuleBasedClassifier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ml_classifier</span> <span class="o">=</span> <span class="n">MLIntentClassifier</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">classify_agent_intent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;多模型融合的意图分类&quot;&quot;&quot;</span>
+        <span class="c1"># LLM分析</span>
+        <span class="n">llm_intent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">({</span>
+            <span class="s1">&#39;api_calls&#39;</span><span class="p">:</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;api_sequence&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;parameters&#39;</span><span class="p">:</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;request_params&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;timing&#39;</span><span class="p">:</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;timing_pattern&#39;</span><span class="p">]</span>
+        <span class="p">})</span>
+
+        <span class="c1"># 规则引擎判断</span>
+        <span class="n">rule_intent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rule_engine</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">agent_data</span><span class="p">)</span>
+
+        <span class="c1"># ML模型预测</span>
+        <span class="n">ml_intent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ml_classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">agent_data</span><span class="p">)</span>
+
+        <span class="c1"># 融合决策</span>
+        <span class="n">final_intent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fusion_decision</span><span class="p">(</span><span class="n">llm_intent</span><span class="p">,</span> <span class="n">rule_intent</span><span class="p">,</span> <span class="n">ml_intent</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;primary_intent&#39;</span><span class="p">:</span> <span class="n">final_intent</span><span class="p">[</span><span class="s1">&#39;category&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">final_intent</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;sub_intents&#39;</span><span class="p">:</span> <span class="n">final_intent</span><span class="p">[</span><span class="s1">&#39;sub_categories&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_explanation</span><span class="p">(</span><span class="n">final_intent</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">fusion_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">rule</span><span class="p">,</span> <span class="n">ml</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;多模型融合决策&quot;&quot;&quot;</span>
+        <span class="c1"># 意图类别定义</span>
+        <span class="n">intent_categories</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;legitimate_automation&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;user_assistance&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>      <span class="c1"># 用户辅助</span>
+                <span class="s1">&#39;business_integration&#39;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span> <span class="c1"># 业务集成</span>
+                <span class="s1">&#39;accessibility&#39;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>        <span class="c1"># 无障碍访问</span>
+                <span class="s1">&#39;testing&#39;</span><span class="p">:</span> <span class="mf">0.8</span>               <span class="c1"># 合法测试</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;gray_area&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;research&#39;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>             <span class="c1"># 研究目的</span>
+                <span class="s1">&#39;monitoring&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>           <span class="c1"># 监控分析</span>
+                <span class="s1">&#39;aggregation&#39;</span><span class="p">:</span> <span class="mf">0.4</span>           <span class="c1"># 数据聚合</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;malicious&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;scraping&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>             <span class="c1"># 恶意爬取</span>
+                <span class="s1">&#39;attack&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>               <span class="c1"># 攻击行为</span>
+                <span class="s1">&#39;fraud&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>                <span class="c1"># 欺诈活动</span>
+                <span class="s1">&#39;abuse&#39;</span><span class="p">:</span> <span class="mf">0.05</span>                <span class="c1"># 平台滥用</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 加权投票</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;llm&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s1">&#39;rule&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;ml&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">}</span>
+        <span class="n">combined_scores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">intent_categories</span><span class="p">:</span>
+            <span class="n">combined_scores</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">llm</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;llm&#39;</span><span class="p">]</span> <span class="o">+</span>
+                <span class="n">rule</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;rule&#39;</span><span class="p">]</span> <span class="o">+</span>
+                <span class="n">ml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;ml&#39;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 选择最高分类别</span>
+        <span class="n">best_category</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">combined_scores</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">combined_scores</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">best_category</span><span class="p">,</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">combined_scores</span><span class="p">[</span><span class="n">best_category</span><span class="p">],</span>
+            <span class="s1">&#39;sub_categories&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify_sub_categories</span><span class="p">(</span><span class="n">best_category</span><span class="p">,</span> <span class="n">agent_data</span><span class="p">),</span>
+            <span class="s1">&#39;all_scores&#39;</span><span class="p">:</span> <span class="n">combined_scores</span>
+        <span class="p">}</span>
+</code></pre></div>
+
+<p><strong>意图分类的业务规则</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="err">意图类别树：</span>
+<span class="err">├──</span><span class="w"> </span><span class="err">合法自动化（</span><span class="n">Legitimate</span><span class="w"> </span><span class="n">Automation</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">辅助技术（</span><span class="n">Assistive</span><span class="w"> </span><span class="n">Technology</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">屏幕阅读器</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">语音控制</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">手势转换</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">业务集成（</span><span class="n">Business</span><span class="w"> </span><span class="n">Integration</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">ERP对接</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">财务系统</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">供应链管理</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">用户代理（</span><span class="n">User</span><span class="w"> </span><span class="n">Proxy</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">智能助手</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">日程管理</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">批量操作</span>
+<span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">开发测试（</span><span class="n">Development</span><span class="err">）</span>
+<span class="err">│</span><span class="w">       </span><span class="err">├──</span><span class="w"> </span><span class="n">API测试</span>
+<span class="err">│</span><span class="w">       </span><span class="err">├──</span><span class="w"> </span><span class="err">性能监控</span>
+<span class="err">│</span><span class="w">       </span><span class="err">└──</span><span class="w"> </span><span class="err">集成测试</span>
+<span class="err">│</span>
+<span class="err">├──</span><span class="w"> </span><span class="err">灰色地带（</span><span class="n">Gray</span><span class="w"> </span><span class="n">Area</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">数据分析（</span><span class="n">Data</span><span class="w"> </span><span class="n">Analysis</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">市场研究</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">价格监控</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">竞品分析</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">聚合服务（</span><span class="n">Aggregation</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">比价平台</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">信息整合</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">推荐系统</span>
+<span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">监控告警（</span><span class="n">Monitoring</span><span class="err">）</span>
+<span class="err">│</span><span class="w">       </span><span class="err">├──</span><span class="w"> </span><span class="err">可用性监控</span>
+<span class="err">│</span><span class="w">       </span><span class="err">├──</span><span class="w"> </span><span class="err">库存提醒</span>
+<span class="err">│</span><span class="w">       </span><span class="err">└──</span><span class="w"> </span><span class="err">价格变动</span>
+<span class="err">│</span>
+<span class="err">└──</span><span class="w"> </span><span class="err">恶意行为（</span><span class="n">Malicious</span><span class="err">）</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="err">数据窃取（</span><span class="n">Data</span><span class="w"> </span><span class="n">Theft</span><span class="err">）</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">用户信息</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">商业机密</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">定价策略</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="err">平台攻击（</span><span class="n">Platform</span><span class="w"> </span><span class="n">Attack</span><span class="err">）</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">DDoS攻击</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="err">注入攻击</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="err">越权访问</span>
+<span class="w">    </span><span class="err">└──</span><span class="w"> </span><span class="err">业务欺诈（</span><span class="n">Business</span><span class="w"> </span><span class="n">Fraud</span><span class="err">）</span>
+<span class="w">        </span><span class="err">├──</span><span class="w"> </span><span class="err">刷单刷评</span>
+<span class="w">        </span><span class="err">├──</span><span class="w"> </span><span class="err">虚假交易</span>
+<span class="w">        </span><span class="err">└──</span><span class="w"> </span><span class="err">库存占用</span>
+</code></pre></div>
+
 <h3 id="1133">11.3.3 多维度综合评判</h3>
+<p><strong>综合评判决策树</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">ComprehensiveJudgment</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;identity&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>      <span class="c1"># 身份维度</span>
+            <span class="s1">&#39;behavior&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>     <span class="c1"># 行为维度</span>
+            <span class="s1">&#39;intent&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>       <span class="c1"># 意图维度</span>
+            <span class="s1">&#39;impact&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>       <span class="c1"># 影响维度</span>
+            <span class="s1">&#39;history&#39;</span><span class="p">:</span> <span class="mf">0.15</span>       <span class="c1"># 历史维度</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">make_judgment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;多维度综合判断&quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># 收集各维度数据</span>
+        <span class="n">identity_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_identity_assessment</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">behavior_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_behavior_analysis</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">intent_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_intent_classification</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">impact_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_impact_assessment</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">history_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_historical_record</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 计算各维度得分</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;identity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_identity</span><span class="p">(</span><span class="n">identity_data</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;behavior&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_behavior</span><span class="p">(</span><span class="n">behavior_data</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;intent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_intent</span><span class="p">(</span><span class="n">intent_data</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;impact&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_impact</span><span class="p">(</span><span class="n">impact_data</span><span class="p">)</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_history</span><span class="p">(</span><span class="n">history_data</span><span class="p">)</span>
+
+        <span class="c1"># 加权综合</span>
+        <span class="n">total_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">)</span>
+
+        <span class="c1"># 决策</span>
+        <span class="n">decision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_decision</span><span class="p">(</span><span class="n">total_score</span><span class="p">,</span> <span class="n">scores</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;agent_id&#39;</span><span class="p">:</span> <span class="n">agent_id</span><span class="p">,</span>
+            <span class="s1">&#39;classification&#39;</span><span class="p">:</span> <span class="n">decision</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">decision</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;scores&#39;</span><span class="p">:</span> <span class="n">scores</span><span class="p">,</span>
+            <span class="s1">&#39;total_score&#39;</span><span class="p">:</span> <span class="n">total_score</span><span class="p">,</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_confidence</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span>
+            <span class="s1">&#39;explanation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_explanation</span><span class="p">(</span><span class="n">decision</span><span class="p">,</span> <span class="n">scores</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">make_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_score</span><span class="p">,</span> <span class="n">dimension_scores</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;基于得分做出决策&quot;&quot;&quot;</span>
+        <span class="c1"># 检查是否有维度红线</span>
+        <span class="k">if</span> <span class="n">dimension_scores</span><span class="p">[</span><span class="s1">&#39;intent&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.2</span><span class="p">:</span>  <span class="c1"># 意图明显恶意</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;malicious&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;恶意意图明确&#39;</span>
+            <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">dimension_scores</span><span class="p">[</span><span class="s1">&#39;impact&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.3</span> <span class="ow">and</span> <span class="n">dimension_scores</span><span class="p">[</span><span class="s1">&#39;behavior&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;suspicious&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;restrict&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;行为异常且影响较大&#39;</span>
+            <span class="p">}</span>
+
+        <span class="c1"># 基于总分分类</span>
+        <span class="k">if</span> <span class="n">total_score</span> <span class="o">&gt;=</span> <span class="mf">0.8</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;benign&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;allow&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;各项指标正常&#39;</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="n">total_score</span> <span class="o">&gt;=</span> <span class="mf">0.6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;legitimate&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;allow_with_monitoring&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;基本正常但需观察&#39;</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="n">total_score</span> <span class="o">&gt;=</span> <span class="mf">0.4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;limit&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;存在风险需要限制&#39;</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;malicious&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;综合评分过低&#39;</span>
+            <span class="p">}</span>
+</code></pre></div>
+
 <h3 id="1134">11.3.4 误判处理与申诉机制</h3>
+<p><strong>申诉流程设计</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">AppealSystem</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appeal_queue</span> <span class="o">=</span> <span class="n">PriorityQueue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">review_team</span> <span class="o">=</span> <span class="n">ReviewTeam</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_reviewer</span> <span class="o">=</span> <span class="n">AutoReviewer</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">submit_appeal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">appeal_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;提交申诉&quot;&quot;&quot;</span>
+        <span class="n">appeal</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_appeal_id</span><span class="p">(),</span>
+            <span class="s1">&#39;agent_id&#39;</span><span class="p">:</span> <span class="n">agent_id</span><span class="p">,</span>
+            <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">appeal_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="n">appeal_data</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;evidence&#39;</span><span class="p">:</span> <span class="n">appeal_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;evidence&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_priority</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">appeal_data</span><span class="p">),</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;pending&#39;</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 快速自动审查</span>
+        <span class="n">auto_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_reviewer</span><span class="o">.</span><span class="n">quick_review</span><span class="p">(</span><span class="n">appeal</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">auto_result</span><span class="p">[</span><span class="s1">&#39;can_auto_resolve&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_resolve</span><span class="p">(</span><span class="n">appeal</span><span class="p">,</span> <span class="n">auto_result</span><span class="p">)</span>
+
+        <span class="c1"># 加入人工审核队列</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appeal_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">appeal</span><span class="p">)</span>
+
+        <span class="c1"># 发送确认</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_confirmation</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;appeal_id&#39;</span><span class="p">:</span> <span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;submitted&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;estimated_time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_review_time</span><span class="p">(),</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">auto_resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appeal</span><span class="p">,</span> <span class="n">review_result</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;自动处理明显的误判&quot;&quot;&quot;</span>
+        <span class="n">resolution_actions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;false_positive_blocking&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unblock_agent</span><span class="p">,</span>
+            <span class="s1">&#39;incorrect_classification&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reclassify_agent</span><span class="p">,</span>
+            <span class="s1">&#39;outdated_restriction&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lift_restriction</span><span class="p">,</span>
+            <span class="s1">&#39;technical_error&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_technical_issue</span>
+        <span class="p">}</span>
+
+        <span class="n">action</span> <span class="o">=</span> <span class="n">resolution_actions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">review_result</span><span class="p">[</span><span class="s1">&#39;issue_type&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">action</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">action</span><span class="p">(</span><span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">record_resolution</span><span class="p">(</span><span class="n">appeal</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_ml_models</span><span class="p">(</span><span class="n">appeal</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>  <span class="c1"># 反馈给ML模型</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;appeal_id&#39;</span><span class="p">:</span> <span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;resolved&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;resolution&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span>
+                <span class="s1">&#39;time_taken&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt; 1 minute&#39;</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">manual_review_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appeal_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;人工审核流程&quot;&quot;&quot;</span>
+        <span class="n">appeal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_appeal</span><span class="p">(</span><span class="n">appeal_id</span><span class="p">)</span>
+
+        <span class="c1"># 收集完整上下文</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;agent_profile&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_profile</span><span class="p">(</span><span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;recent_behavior&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_recent_behavior</span><span class="p">(</span><span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;similar_cases&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_similar_cases</span><span class="p">(</span><span class="n">appeal</span><span class="p">),</span>
+            <span class="s1">&#39;policy_guidelines&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_relevant_policies</span><span class="p">(</span><span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 分配给审核员</span>
+        <span class="n">reviewer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">review_team</span><span class="o">.</span><span class="n">assign_reviewer</span><span class="p">(</span><span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">])</span>
+
+        <span class="c1"># 审核决策</span>
+        <span class="n">decision</span> <span class="o">=</span> <span class="n">reviewer</span><span class="o">.</span><span class="n">review</span><span class="p">(</span><span class="n">appeal</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="c1"># 执行决策</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute_decision</span><span class="p">(</span><span class="n">decision</span><span class="p">)</span>
+
+        <span class="c1"># 通知结果</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notify_appeal_result</span><span class="p">(</span><span class="n">appeal</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">],</span> <span class="n">decision</span><span class="p">)</span>
+
+        <span class="c1"># 更新系统</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_system_rules</span><span class="p">(</span><span class="n">decision</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">decision</span>
+</code></pre></div>
+
+<p><strong>误判补偿机制</strong>：</p>
+<div class="codehilite"><pre><span></span><code>补偿等级：
+┌─────────────────────────────────────────┐
+│ Level 1: 快速恢复                       │
+│   - 立即解除限制                        │
+│   - 恢复原有权限                        │
+│   - 清除不良记录                        │
+├─────────────────────────────────────────┤
+│ Level 2: 信誉补偿                       │
+│   - 信任分补偿（+0.1）                  │
+│   - 优先处理队列（7天）                 │
+│   - 专属客服支持                        │
+├─────────────────────────────────────────┤
+│ Level 3: 权益补偿                       │
+│   - API配额翻倍（30天）                 │
+│   - 免费技术支持                        │
+│   - 优先体验新功能                      │
+├─────────────────────────────────────────┤
+│ Level 4: 经济补偿                       │
+│   - 服务费减免                          │
+│   - 云资源代金券                        │
+│   - 合作优惠政策                        │
+└─────────────────────────────────────────┘
+</code></pre></div>
+
 <h2 id="114-api">11.4 API速率限制的智能化调整</h2>
+<p>传统的固定速率限制已无法满足Agent服务的需求。智能化的速率限制需要考虑Agent的信任等级、业务场景、系统负载等多个因素，实现既保护系统稳定又不影响正常服务的动态平衡。</p>
 <h3 id="1141">11.4.1 基础限流策略设计</h3>
+<p><strong>多层级限流架构</strong>：</p>
+<div class="codehilite"><pre><span></span><code>                    限流层级架构
+    ┌────────────────────────────────────────────┐
+    │                                            │
+    │   全局限流 (系统保护)                      │
+    │       ↓                                    │
+    │   租户限流 (公平性)                        │
+    │       ↓                                    │
+    │   Agent限流 (个体控制)                     │
+    │       ↓                                    │
+    │   API限流 (接口保护)                       │
+    │       ↓                                    │
+    │   用户限流 (最终用户)                      │
+    │                                            │
+    └────────────────────────────────────────────┘
+</code></pre></div>
+
+<p><strong>限流算法实现</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">RateLimitManager</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;token_bucket&#39;</span><span class="p">:</span> <span class="n">TokenBucket</span><span class="p">(),</span>
+            <span class="s1">&#39;sliding_window&#39;</span><span class="p">:</span> <span class="n">SlidingWindow</span><span class="p">(),</span>
+            <span class="s1">&#39;leaky_bucket&#39;</span><span class="p">:</span> <span class="n">LeakyBucket</span><span class="p">(),</span>
+            <span class="s1">&#39;adaptive&#39;</span><span class="p">:</span> <span class="n">AdaptiveRateLimit</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_config</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">check_rate_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;多层级限流检查&quot;&quot;&quot;</span>
+        <span class="c1"># 1. 全局限流</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_global_limit</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;global_limit_exceeded&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;retry_after&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_global_retry_time</span><span class="p">()</span>
+            <span class="p">}</span>
+
+        <span class="c1"># 2. 租户限流</span>
+        <span class="n">tenant_id</span> <span class="o">=</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;tenant_id&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_tenant_limit</span><span class="p">(</span><span class="n">tenant_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;tenant_limit_exceeded&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;retry_after&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tenant_retry_time</span><span class="p">(</span><span class="n">tenant_id</span><span class="p">)</span>
+            <span class="p">}</span>
+
+        <span class="c1"># 3. Agent限流</span>
+        <span class="n">agent_id</span> <span class="o">=</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">]</span>
+        <span class="n">agent_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_limit</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_agent_limit</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">agent_limit</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;agent_limit_exceeded&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;retry_after&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_retry_time</span><span class="p">(</span><span class="n">agent_id</span><span class="p">),</span>
+                <span class="s1">&#39;current_limit&#39;</span><span class="p">:</span> <span class="n">agent_limit</span>
+            <span class="p">}</span>
+
+        <span class="c1"># 4. API限流</span>
+        <span class="n">api_endpoint</span> <span class="o">=</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;endpoint&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_api_limit</span><span class="p">(</span><span class="n">api_endpoint</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;api_limit_exceeded&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;retry_after&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_api_retry_time</span><span class="p">(</span><span class="n">api_endpoint</span><span class="p">)</span>
+            <span class="p">}</span>
+
+        <span class="c1"># 5. 用户限流（如果Agent代表用户）</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_id&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_user_limit</span><span class="p">(</span><span class="n">request</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;user_limit_exceeded&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;retry_after&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user_retry_time</span><span class="p">(</span><span class="n">request</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">])</span>
+                <span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;consumed&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">get_agent_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;获取Agent的动态限流配额&quot;&quot;&quot;</span>
+        <span class="n">base_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_limits&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_tier</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)]</span>
+
+        <span class="c1"># 信任分调整</span>
+        <span class="n">trust_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_trust_multiplier</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 历史表现调整</span>
+        <span class="n">performance_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_performance_multiplier</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 系统负载调整</span>
+        <span class="n">load_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_load_multiplier</span><span class="p">()</span>
+
+        <span class="c1"># 时段调整</span>
+        <span class="n">time_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_time_multiplier</span><span class="p">()</span>
+
+        <span class="c1"># 计算最终限流值</span>
+        <span class="n">final_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="n">base_limit</span> <span class="o">*</span> 
+            <span class="n">trust_multiplier</span> <span class="o">*</span> 
+            <span class="n">performance_multiplier</span> <span class="o">*</span> 
+            <span class="n">load_multiplier</span> <span class="o">*</span> 
+            <span class="n">time_multiplier</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 确保在合理范围内</span>
+        <span class="n">min_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;min_limits&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_tier</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)]</span>
+        <span class="n">max_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;max_limits&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_tier</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_limit</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_limit</span><span class="p">,</span> <span class="n">final_limit</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>令牌桶算法优化</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">EnhancedTokenBucket</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">refill_rate</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refill_rate</span> <span class="o">=</span> <span class="n">refill_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="n">capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_refill</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">burst_allowance</span> <span class="o">=</span> <span class="n">capacity</span> <span class="o">*</span> <span class="mf">0.2</span>  <span class="c1"># 20%突发容量</span>
+
+    <span class="k">def</span> <span class="nf">try_consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;尝试消费令牌&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refill</span><span class="p">()</span>
+
+        <span class="c1"># 优先级调整</span>
+        <span class="k">if</span> <span class="n">priority</span> <span class="o">==</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">*=</span> <span class="mf">0.8</span>  <span class="c1"># 高优先级消耗更少令牌</span>
+        <span class="k">elif</span> <span class="n">priority</span> <span class="o">==</span> <span class="s1">&#39;low&#39;</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">*=</span> <span class="mf">1.2</span>  <span class="c1"># 低优先级消耗更多令牌</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">&gt;=</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">-=</span> <span class="n">tokens</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span>
+
+        <span class="c1"># 检查突发容量</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">burst_allowance</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">tokens</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">burst_allowance</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">burst_allowance</span> <span class="o">-=</span> <span class="n">tokens</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span>
+
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span>
+
+    <span class="k">def</span> <span class="nf">refill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;补充令牌&quot;&quot;&quot;</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_refill</span>
+
+        <span class="c1"># 计算应补充的令牌数</span>
+        <span class="n">tokens_to_add</span> <span class="o">=</span> <span class="n">elapsed</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">refill_rate</span>
+
+        <span class="c1"># 更新令牌数（不超过容量）</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">+</span> <span class="n">tokens_to_add</span><span class="p">)</span>
+
+        <span class="c1"># 恢复突发容量</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">burst_allowance</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">*</span> <span class="mf">0.2</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">burst_allowance</span> <span class="o">+</span> <span class="n">tokens_to_add</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_refill</span> <span class="o">=</span> <span class="n">now</span>
+
+    <span class="k">def</span> <span class="nf">get_wait_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;计算需要等待的时间&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">&gt;=</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">tokens_needed</span> <span class="o">=</span> <span class="n">tokens</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span>
+        <span class="n">wait_time</span> <span class="o">=</span> <span class="n">tokens_needed</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">refill_rate</span>
+
+        <span class="k">return</span> <span class="n">wait_time</span>
+</code></pre></div>
+
 <h3 id="1142">11.4.2 信任度关联的动态配额</h3>
+<p><strong>信任度与配额映射模型</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">TrustBasedQuota</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trust_tiers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;platinum&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;base_qps&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+                <span class="s1">&#39;burst_multiplier&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;high&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;soft_limit&#39;</span><span class="p">:</span> <span class="kc">True</span>  <span class="c1"># 软限制，可临时超出</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;gold&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;base_qps&#39;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
+                <span class="s1">&#39;burst_multiplier&#39;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;soft_limit&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;silver&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;base_qps&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+                <span class="s1">&#39;burst_multiplier&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;soft_limit&#39;</span><span class="p">:</span> <span class="kc">False</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;bronze&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;base_qps&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s1">&#39;burst_multiplier&#39;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;low&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;soft_limit&#39;</span><span class="p">:</span> <span class="kc">False</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;restricted&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;base_qps&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s1">&#39;burst_multiplier&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;lowest&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;soft_limit&#39;</span><span class="p">:</span> <span class="kc">False</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">calculate_dynamic_quota</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;计算动态配额&quot;&quot;&quot;</span>
+        <span class="n">trust_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trust_score</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">trust_tier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_to_tier</span><span class="p">(</span><span class="n">trust_score</span><span class="p">)</span>
+        <span class="n">tier_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trust_tiers</span><span class="p">[</span><span class="n">trust_tier</span><span class="p">]</span>
+
+        <span class="c1"># 基础配额</span>
+        <span class="n">base_quota</span> <span class="o">=</span> <span class="n">tier_config</span><span class="p">[</span><span class="s1">&#39;base_qps&#39;</span><span class="p">]</span>
+
+        <span class="c1"># 信任分精细调整（在tier内部）</span>
+        <span class="n">tier_adjustment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_tier_adjustment</span><span class="p">(</span><span class="n">trust_score</span><span class="p">,</span> <span class="n">trust_tier</span><span class="p">)</span>
+
+        <span class="c1"># 行为模式调整</span>
+        <span class="n">behavior_adjustment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_behavior_pattern</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 贡献度加成</span>
+        <span class="n">contribution_bonus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_contribution_bonus</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 计算最终配额</span>
+        <span class="n">final_quota</span> <span class="o">=</span> <span class="n">base_quota</span> <span class="o">*</span> <span class="n">tier_adjustment</span> <span class="o">*</span> <span class="n">behavior_adjustment</span> <span class="o">+</span> <span class="n">contribution_bonus</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;quota&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_quota</span><span class="p">),</span>
+            <span class="s1">&#39;burst_limit&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_quota</span> <span class="o">*</span> <span class="n">tier_config</span><span class="p">[</span><span class="s1">&#39;burst_multiplier&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">tier_config</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;soft_limit&#39;</span><span class="p">:</span> <span class="n">tier_config</span><span class="p">[</span><span class="s1">&#39;soft_limit&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;tier&#39;</span><span class="p">:</span> <span class="n">trust_tier</span><span class="p">,</span>
+            <span class="s1">&#39;adjustments&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;tier&#39;</span><span class="p">:</span> <span class="n">tier_adjustment</span><span class="p">,</span>
+                <span class="s1">&#39;behavior&#39;</span><span class="p">:</span> <span class="n">behavior_adjustment</span><span class="p">,</span>
+                <span class="s1">&#39;contribution&#39;</span><span class="p">:</span> <span class="n">contribution_bonus</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">calculate_tier_adjustment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trust_score</span><span class="p">,</span> <span class="n">tier</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;在tier内部的精细调整&quot;&quot;&quot;</span>
+        <span class="n">tier_ranges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;platinum&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="s1">&#39;gold&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span>
+            <span class="s1">&#39;silver&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">),</span>
+            <span class="s1">&#39;bronze&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
+            <span class="s1">&#39;restricted&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="n">min_score</span><span class="p">,</span> <span class="n">max_score</span> <span class="o">=</span> <span class="n">tier_ranges</span><span class="p">[</span><span class="n">tier</span><span class="p">]</span>
+
+        <span class="c1"># 线性插值</span>
+        <span class="k">if</span> <span class="n">max_score</span> <span class="o">&gt;</span> <span class="n">min_score</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="n">trust_score</span> <span class="o">-</span> <span class="n">min_score</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">max_score</span> <span class="o">-</span> <span class="n">min_score</span><span class="p">)</span>
+            <span class="c1"># 在0.8到1.2之间调整</span>
+            <span class="k">return</span> <span class="mf">0.8</span> <span class="o">+</span> <span class="n">position</span> <span class="o">*</span> <span class="mf">0.4</span>
+
+        <span class="k">return</span> <span class="mf">1.0</span>
+
+    <span class="k">def</span> <span class="nf">analyze_behavior_pattern</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;分析行为模式对配额的影响&quot;&quot;&quot;</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_behavior_patterns</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="n">adjustments</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;consistent_usage&#39;</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span>      <span class="c1"># 使用稳定</span>
+            <span class="s1">&#39;efficient_api_usage&#39;</span><span class="p">:</span> <span class="mf">1.15</span><span class="p">,</span>  <span class="c1"># API使用高效</span>
+            <span class="s1">&#39;low_error_rate&#39;</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span>        <span class="c1"># 错误率低</span>
+            <span class="s1">&#39;good_retry_behavior&#39;</span><span class="p">:</span> <span class="mf">1.05</span><span class="p">,</span>  <span class="c1"># 重试行为良好</span>
+            <span class="s1">&#39;respects_limits&#39;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>       <span class="c1"># 遵守限制</span>
+
+            <span class="s1">&#39;bursty_usage&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>          <span class="c1"># 使用突发</span>
+            <span class="s1">&#39;inefficient_calls&#39;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>    <span class="c1"># 调用低效</span>
+            <span class="s1">&#39;high_error_rate&#39;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>       <span class="c1"># 错误率高</span>
+            <span class="s1">&#39;aggressive_retry&#39;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>      <span class="c1"># 激进重试</span>
+            <span class="s1">&#39;limit_violations&#39;</span><span class="p">:</span> <span class="mf">0.6</span>       <span class="c1"># 经常违反限制</span>
+        <span class="p">}</span>
+
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">adjustment</span> <span class="ow">in</span> <span class="n">adjustments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">patterns</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">multiplier</span> <span class="o">*=</span> <span class="n">adjustment</span>
+
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">multiplier</span><span class="p">))</span>  <span class="c1"># 限制在0.5-1.5之间</span>
+</code></pre></div>
+
+<p><strong>配额动态调整机制</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">QuotaAdjustmentEngine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adjustment_history</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_system</span> <span class="o">=</span> <span class="n">QuotaLearningSystem</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">adjust_quota_realtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">current_usage</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;实时调整配额&quot;&quot;&quot;</span>
+        <span class="n">current_quota</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_quota</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="c1"># 收集实时指标</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;usage_rate&#39;</span><span class="p">:</span> <span class="n">current_usage</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;error_rate&#39;</span><span class="p">:</span> <span class="n">current_usage</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">current_usage</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s1">&#39;response_time&#39;</span><span class="p">:</span> <span class="n">current_usage</span><span class="p">[</span><span class="s1">&#39;avg_response_time&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;queue_depth&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_queue_depth</span><span class="p">(</span><span class="n">agent_id</span><span class="p">),</span>
+            <span class="s1">&#39;system_load&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_system_load</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 判断是否需要调整</span>
+        <span class="n">adjustment_needed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_adjustment_need</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">adjustment_needed</span><span class="p">:</span>
+            <span class="c1"># 计算调整幅度</span>
+            <span class="n">adjustment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_adjustment</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
+
+            <span class="c1"># 应用调整</span>
+            <span class="n">new_quota</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_adjustment</span><span class="p">(</span><span class="n">current_quota</span><span class="p">,</span> <span class="n">adjustment</span><span class="p">)</span>
+
+            <span class="c1"># 记录调整</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">record_adjustment</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">&#39;old_quota&#39;</span><span class="p">:</span> <span class="n">current_quota</span><span class="p">,</span>
+                <span class="s1">&#39;new_quota&#39;</span><span class="p">:</span> <span class="n">new_quota</span><span class="p">,</span>
+                <span class="s1">&#39;metrics&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">,</span>
+                <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="p">})</span>
+
+            <span class="c1"># 学习系统反馈</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">learning_system</span><span class="o">.</span><span class="n">feedback</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">adjustment</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">new_quota</span>
+
+        <span class="k">return</span> <span class="n">current_quota</span>
+
+    <span class="k">def</span> <span class="nf">calculate_adjustment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;计算配额调整&quot;&quot;&quot;</span>
+        <span class="n">adjustment</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;factor&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="c1"># 使用率调整</span>
+        <span class="k">if</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;usage_rate&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;error_rate&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>  <span class="c1"># 高使用率但低错误</span>
+                <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">1.2</span>
+                <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;高效使用&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;usage_rate&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.8</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;使用率过低&#39;</span><span class="p">)</span>
+
+        <span class="c1"># 错误率调整</span>
+        <span class="k">if</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;error_rate&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.7</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;错误率过高&#39;</span><span class="p">)</span>
+
+        <span class="c1"># 系统负载调整</span>
+        <span class="k">if</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;system_load&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.9</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;系统负载高&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;system_load&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.3</span><span class="p">:</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">1.1</span>
+            <span class="n">adjustment</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;系统空闲&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">adjustment</span>
+</code></pre></div>
+
 <h3 id="1143">11.4.3 业务场景的差异化限制</h3>
+<p><strong>场景化限流策略</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">ScenarioBasedRateLimit</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;user_query&#39;</span><span class="p">:</span> <span class="p">{</span>          <span class="c1"># 用户查询场景</span>
+                <span class="s1">&#39;base_limit&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s1">&#39;burst_allowed&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;high&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;cache_enabled&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;batch_operation&#39;</span><span class="p">:</span> <span class="p">{</span>     <span class="c1"># 批量操作场景</span>
+                <span class="s1">&#39;base_limit&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s1">&#39;burst_allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;low&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;queue_enabled&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;realtime_tracking&#39;</span><span class="p">:</span> <span class="p">{</span>   <span class="c1"># 实时追踪场景</span>
+                <span class="s1">&#39;base_limit&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+                <span class="s1">&#39;burst_allowed&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;critical&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;websocket_enabled&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;data_sync&#39;</span><span class="p">:</span> <span class="p">{</span>          <span class="c1"># 数据同步场景</span>
+                <span class="s1">&#39;base_limit&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s1">&#39;burst_allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;batch_window&#39;</span><span class="p">:</span> <span class="mi">60</span>  <span class="c1"># 秒</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;analytics&#39;</span><span class="p">:</span> <span class="p">{</span>          <span class="c1"># 数据分析场景</span>
+                <span class="s1">&#39;base_limit&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s1">&#39;burst_allowed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="s1">&#39;lowest&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;off_peak_bonus&#39;</span><span class="p">:</span> <span class="mf">2.0</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">get_scenario_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;获取场景化的限流配置&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scenario</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="p">:</span>
+            <span class="n">scenario</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="p">[</span><span class="n">scenario</span><span class="p">]</span>
+        <span class="n">base_limit</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_limit&#39;</span><span class="p">]</span>
+
+        <span class="c1"># 根据场景特性调整</span>
+        <span class="n">adjusted_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_for_scenario</span><span class="p">(</span>
+            <span class="n">base_limit</span><span class="p">,</span> 
+            <span class="n">scenario</span><span class="p">,</span> 
+            <span class="n">context</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 时段调整</span>
+        <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="s1">&#39;analytics&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_off_peak</span><span class="p">():</span>
+            <span class="n">adjusted_limit</span> <span class="o">*=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;off_peak_bonus&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># Agent等级调整</span>
+        <span class="n">agent_tier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_tier</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="n">tier_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tier_multiplier</span><span class="p">(</span><span class="n">agent_tier</span><span class="p">,</span> <span class="n">scenario</span><span class="p">)</span>
+
+        <span class="n">final_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">adjusted_limit</span> <span class="o">*</span> <span class="n">tier_multiplier</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;limit&#39;</span><span class="p">:</span> <span class="n">final_limit</span><span class="p">,</span>
+            <span class="s1">&#39;burst&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;burst_allowed&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;special_features&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_special_features</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">adjust_for_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_limit</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;根据场景上下文调整限制&quot;&quot;&quot;</span>
+        <span class="n">adjustments</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="s1">&#39;user_query&#39;</span><span class="p">:</span>
+            <span class="c1"># 用户查询根据查询复杂度调整</span>
+            <span class="n">complexity</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;query_complexity&#39;</span><span class="p">,</span> <span class="s1">&#39;normal&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">complexity</span> <span class="o">==</span> <span class="s1">&#39;simple&#39;</span><span class="p">:</span>
+                <span class="n">adjustments</span> <span class="o">*=</span> <span class="mf">1.5</span>
+            <span class="k">elif</span> <span class="n">complexity</span> <span class="o">==</span> <span class="s1">&#39;complex&#39;</span><span class="p">:</span>
+                <span class="n">adjustments</span> <span class="o">*=</span> <span class="mf">0.7</span>
+
+        <span class="k">elif</span> <span class="n">scenario</span> <span class="o">==</span> <span class="s1">&#39;batch_operation&#39;</span><span class="p">:</span>
+            <span class="c1"># 批量操作根据批次大小调整</span>
+            <span class="n">batch_size</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">batch_size</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>
+                <span class="n">adjustments</span> <span class="o">*=</span> <span class="mf">0.5</span>
+            <span class="k">elif</span> <span class="n">batch_size</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+                <span class="n">adjustments</span> <span class="o">*=</span> <span class="mf">1.5</span>
+
+        <span class="k">elif</span> <span class="n">scenario</span> <span class="o">==</span> <span class="s1">&#39;realtime_tracking&#39;</span><span class="p">:</span>
+            <span class="c1"># 实时追踪根据追踪对象数调整</span>
+            <span class="n">tracking_count</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tracking_count&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">adjustments</span> <span class="o">*=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">tracking_count</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">base_limit</span> <span class="o">*</span> <span class="n">adjustments</span>
+</code></pre></div>
+
+<p><strong>API级别的差异化限制</strong>：</p>
+<div class="codehilite"><pre><span></span><code>API分类与限流策略：
+┌──────────────────────────────────────────────────┐
+│ 高频查询类 API                                   │
+│   - 商家搜索: 1000 QPS                          │
+│   - 菜品浏览: 2000 QPS                          │
+│   - 价格查询: 500 QPS                           │
+│   策略: 缓存优先，短时突发允许                   │
+├──────────────────────────────────────────────────┤
+│ 交易类 API                                       │
+│   - 下单: 10 QPS                                │
+│   - 支付: 5 QPS                                 │
+│   - 取消: 20 QPS                                │
+│   策略: 严格限制，防欺诈检测                     │
+├──────────────────────────────────────────────────┤
+│ 数据类 API                                       │
+│   - 报表导出: 1 QPM                             │
+│   - 历史查询: 10 QPS                            │
+│   - 统计分析: 5 QPS                             │
+│   策略: 队列处理，非高峰时段加成                 │
+├──────────────────────────────────────────────────┤
+│ 实时类 API                                       │
+│   - 位置更新: 100 QPS                           │
+│   - 状态推送: 50 QPS                            │
+│   - 消息通知: 200 QPS                           │
+│   策略: WebSocket优先，降级到轮询                │
+└──────────────────────────────────────────────────┘
+</code></pre></div>
+
 <h3 id="1144">11.4.4 突发流量的弹性处理</h3>
+<p><strong>弹性限流机制</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">ElasticRateLimiter</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">burst_detector</span> <span class="o">=</span> <span class="n">BurstDetector</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity_manager</span> <span class="o">=</span> <span class="n">CapacityManager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue_manager</span> <span class="o">=</span> <span class="n">QueueManager</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">handle_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;处理请求with弹性限流&quot;&quot;&quot;</span>
+        <span class="c1"># 检测是否为突发流量</span>
+        <span class="n">is_burst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">burst_detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">request</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">is_burst</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_burst_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_normal_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">handle_burst_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;处理突发请求&quot;&quot;&quot;</span>
+        <span class="n">agent_id</span> <span class="o">=</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">]</span>
+
+        <span class="c1"># 评估突发合理性</span>
+        <span class="n">burst_evaluation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_burst</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">burst_evaluation</span><span class="p">[</span><span class="s1">&#39;legitimate&#39;</span><span class="p">]:</span>
+            <span class="c1"># 合理突发，提供弹性容量</span>
+            <span class="n">strategy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_burst_strategy</span><span class="p">(</span><span class="n">burst_evaluation</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;immediate&#39;</span><span class="p">:</span>
+                <span class="c1"># 立即处理</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_with_burst_capacity</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;queue&#39;</span><span class="p">:</span>
+                <span class="c1"># 队列缓冲</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;degrade&#39;</span><span class="p">:</span>
+                <span class="c1"># 服务降级</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_with_degradation</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 异常突发，严格限制</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reject_burst</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">burst_evaluation</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">evaluate_burst</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;评估突发流量的合理性&quot;&quot;&quot;</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;legitimate&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 历史模式分析</span>
+        <span class="n">historical_bursts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_historical_bursts</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_regular_burst_pattern</span><span class="p">(</span><span class="n">historical_bursts</span><span class="p">):</span>
+            <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.3</span>
+            <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;符合历史突发模式&#39;</span><span class="p">)</span>
+
+        <span class="c1"># 业务逻辑验证</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_business_driven_burst</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span>
+            <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.4</span>
+            <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;业务驱动的合理突发&#39;</span><span class="p">)</span>
+
+        <span class="c1"># 信任度检查</span>
+        <span class="n">trust_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trust_score</span><span class="p">(</span><span class="n">agent_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trust_score</span> <span class="o">&gt;</span> <span class="mf">0.7</span><span class="p">:</span>
+            <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.3</span>
+            <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;高信任度Agent&#39;</span><span class="p">)</span>
+
+        <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;legitimate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
+
+        <span class="k">return</span> <span class="n">evaluation</span>
+
+    <span class="k">def</span> <span class="nf">select_burst_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evaluation</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;选择突发处理策略&quot;&quot;&quot;</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="n">evaluation</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">confidence</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;immediate&#39;</span>  <span class="c1"># 高置信度，立即处理</span>
+        <span class="k">elif</span> <span class="n">confidence</span> <span class="o">&gt;</span> <span class="mf">0.6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;queue&#39;</span>      <span class="c1"># 中置信度，队列缓冲</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;degrade&#39;</span>    <span class="c1"># 低置信度，服务降级</span>
+
+    <span class="k">def</span> <span class="nf">process_with_burst_capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;使用突发容量处理请求&quot;&quot;&quot;</span>
+        <span class="c1"># 动态扩展容量</span>
+        <span class="n">expanded_capacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity_manager</span><span class="o">.</span><span class="n">expand_capacity</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">],</span>
+            <span class="n">factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="mi">60</span>  <span class="c1"># 60秒</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 处理请求</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_request</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">expanded_capacity</span><span class="p">)</span>
+
+        <span class="c1"># 记录突发使用</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_burst_usage</span><span class="p">(</span><span class="n">request</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">],</span> <span class="n">expanded_capacity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+
+<p><strong>智能队列管理</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">IntelligentQueueManager</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">queues</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;critical&#39;</span><span class="p">:</span> <span class="n">PriorityQueue</span><span class="p">(),</span>
+            <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="n">PriorityQueue</span><span class="p">(),</span>
+            <span class="s1">&#39;normal&#39;</span><span class="p">:</span> <span class="n">Queue</span><span class="p">(),</span>
+            <span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="n">Queue</span><span class="p">(),</span>
+            <span class="s1">&#39;batch&#39;</span><span class="p">:</span> <span class="n">BatchQueue</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue_metrics</span> <span class="o">=</span> <span class="n">QueueMetrics</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">enqueue_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;智能入队&quot;&quot;&quot;</span>
+        <span class="n">priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_priority</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">queue_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_queue</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">priority</span><span class="p">)</span>
+
+        <span class="c1"># 检查队列容量</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_queue_full</span><span class="p">(</span><span class="n">queue_type</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_queue_overflow</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">queue_type</span><span class="p">)</span>
+
+        <span class="c1"># 添加到队列</span>
+        <span class="n">queue_item</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">priority</span><span class="p">,</span>
+            <span class="s1">&#39;enqueue_time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+            <span class="s1">&#39;ttl&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_ttl</span><span class="p">(</span><span class="n">request</span><span class="p">),</span>
+            <span class="s1">&#39;retry_count&#39;</span><span class="p">:</span> <span class="mi">0</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">queues</span><span class="p">[</span><span class="n">queue_type</span><span class="p">]</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">queue_item</span><span class="p">)</span>
+
+        <span class="c1"># 返回队列位置信息</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;queued&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;queue_type&#39;</span><span class="p">:</span> <span class="n">queue_type</span><span class="p">,</span>
+            <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_queue_position</span><span class="p">(</span><span class="n">queue_type</span><span class="p">,</span> <span class="n">request</span><span class="p">),</span>
+            <span class="s1">&#39;estimated_wait&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_wait_time</span><span class="p">(</span><span class="n">queue_type</span><span class="p">),</span>
+            <span class="s1">&#39;queue_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_queue_id</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">calculate_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;计算请求优先级&quot;&quot;&quot;</span>
+        <span class="n">base_priority</span> <span class="o">=</span> <span class="mi">50</span>
+
+        <span class="c1"># Agent信任度加成</span>
+        <span class="n">trust_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trust_score</span><span class="p">(</span><span class="n">request</span><span class="p">[</span><span class="s1">&#39;agent_id&#39;</span><span class="p">])</span>
+        <span class="n">base_priority</span> <span class="o">+=</span> <span class="n">trust_score</span> <span class="o">*</span> <span class="mi">20</span>
+
+        <span class="c1"># 业务重要性加成</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;business_critical&#39;</span><span class="p">):</span>
+            <span class="n">base_priority</span> <span class="o">+=</span> <span class="mi">30</span>
+
+        <span class="c1"># 等待时间补偿</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;retry_count&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">base_priority</span> <span class="o">+=</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;retry_count&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span>
+
+        <span class="c1"># SLA要求</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sla_level&#39;</span><span class="p">):</span>
+            <span class="n">sla_bonus</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;platinum&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;gold&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;silver&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+            <span class="n">base_priority</span> <span class="o">+=</span> <span class="n">sla_bonus</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">request</span><span class="p">[</span><span class="s1">&#39;sla_level&#39;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">base_priority</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">estimate_wait_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;估算等待时间&quot;&quot;&quot;</span>
+        <span class="n">queue_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queues</span><span class="p">[</span><span class="n">queue_type</span><span class="p">]</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span>
+        <span class="n">avg_processing_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue_metrics</span><span class="o">.</span><span class="n">get_avg_processing_time</span><span class="p">(</span><span class="n">queue_type</span><span class="p">)</span>
+        <span class="n">current_throughput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue_metrics</span><span class="o">.</span><span class="n">get_current_throughput</span><span class="p">(</span><span class="n">queue_type</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">current_throughput</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">estimated_wait</span> <span class="o">=</span> <span class="n">queue_length</span> <span class="o">/</span> <span class="n">current_throughput</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">estimated_wait</span> <span class="o">=</span> <span class="n">queue_length</span> <span class="o">*</span> <span class="n">avg_processing_time</span>
+
+        <span class="c1"># 考虑队列类型的处理特性</span>
+        <span class="k">if</span> <span class="n">queue_type</span> <span class="o">==</span> <span class="s1">&#39;batch&#39;</span><span class="p">:</span>
+            <span class="c1"># 批处理队列等待到批次满</span>
+            <span class="n">batch_wait</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_batch_wait</span><span class="p">()</span>
+            <span class="n">estimated_wait</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">estimated_wait</span><span class="p">,</span> <span class="n">batch_wait</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">estimated_wait</span>
+</code></pre></div>
+
 <h2 id="115-agent">11.5 Agent友好的接口设计</h2>
 <h3 id="1151">11.5.1 标准化协议支持</h3>
 <h3 id="1152">11.5.2 批量操作接口优化</h3>
@@ -761,7 +1974,7 @@ Restricted    10            禁用       最小      仅查询
 <h2 id="gotchas">常见陷阱与错误（Gotchas）</h2>
             </article>
             
-            <nav class="page-nav"><a href="chapter10.html" class="nav-link prev">← 第10章：反机器人滥用与评论真实性保障</a><a href="CLAUDE.html" class="nav-link next">1) 图灵算法平台（算法基础设施） →</a></nav>
+            <nav class="page-nav"><a href="chapter10.html" class="nav-link prev">← 第10章：反机器人滥用与评论真实性保障</a><a href="chapter12.html" class="nav-link next">第12章：美团App与超级App架构 →</a></nav>
         </main>
     </div>
 </body>
