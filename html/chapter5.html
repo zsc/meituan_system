@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第5章：规划引擎（网络/站点/运力结构规划）</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">美团超脑系统复现教程</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章：图灵算法平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章：大规模特征计算</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章：机器学习平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章：调度引擎 - 实时多人多点分配</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章：规划引擎（网络/站点/运力结构规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章：ETA系统 - 全链路时间预估</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章：LBS系统（地图/地址库/路径规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章：定价系统</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章：精准营销与会员体系</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">1) 图灵算法平台（算法基础设施）</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="5">第5章：规划引擎（网络/站点/运力结构规划）</h1>
+<p>在美团外卖的庞大系统中，如果说调度引擎是"战术执行官"，那么规划引擎就是"战略参谋长"。它不关心某个具体订单该派给哪个骑手，而是思考更宏观的问题：站点应该建在哪里？每个区域需要多少运力？高峰期如何提前布局？这些看似简单的问题，直接决定了整个系统的效率上限。一个糟糕的站点布局，即使有再智能的调度算法也无法弥补；一个不合理的运力结构，会让高峰期永远处于崩溃边缘。本章将深入探讨规划引擎如何通过数学优化、仿真评估和数据驱动，为千万级订单的履约奠定坚实的结构性基础。</p>
+<h2 id="51">5.1 规划层级与时间尺度</h2>
+<p>规划引擎采用经典的三层规划体系，不同层级关注不同的时间尺度和决策粒度：</p>
+<h3 id="511">5.1.1 战略规划（月度/季度）</h3>
+<p>战略规划关注长期结构性问题，其决策影响深远且调整成本高昂：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                      战略规划决策空间                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  输入维度：                     输出决策：                   │
+│  ┌──────────────┐             ┌──────────────┐            │
+│  │ • 城市扩张   │             │ • 站点布局   │            │
+│  │ • 市场预测   │  ────────►  │ • 运力规模   │            │
+│  │ • 竞争格局   │             │ • 服务边界   │            │
+│  │ • 政策变化   │             │ • 投资计划   │            │
+│  └──────────────┘             └──────────────┘            │
+│                                                             │
+│  关键指标：                                                 │
+│  • 覆盖率：可服务区域占比 &gt; 95%                            │
+│  • 密度：平均配送半径 &lt; 3km                                │
+│  • 成本：单均履约成本下降 10%                              │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<p>战略规划的核心是设施选址问题（Facility Location Problem），其数学模型可表示为：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">minimize</span><span class="o">:</span><span class="w"> </span><span class="err">Σᵢ</span><span class="w"> </span><span class="n">fᵢ</span><span class="err">·</span><span class="n">yᵢ</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="err">ΣᵢΣⱼ</span><span class="w"> </span><span class="n">cᵢⱼ</span><span class="err">·</span><span class="n">xᵢⱼ</span>
+
+<span class="n">subject</span><span class="w"> </span><span class="n">to</span><span class="o">:</span>
+<span class="w">  </span><span class="err">Σᵢ</span><span class="w"> </span><span class="n">xᵢⱼ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="o">,</span><span class="w">        </span><span class="err">∀</span><span class="n">j</span><span class="w"> </span><span class="err">∈</span><span class="w"> </span><span class="n">Customers</span><span class="w">    </span><span class="o">(</span><span class="err">每个客户必须被服务</span><span class="o">)</span>
+<span class="w">  </span><span class="n">xᵢⱼ</span><span class="w"> </span><span class="err">≤</span><span class="w"> </span><span class="n">yᵢ</span><span class="o">,</span><span class="w">          </span><span class="err">∀</span><span class="n">i</span><span class="o">,</span><span class="n">j</span><span class="w">              </span><span class="o">(</span><span class="err">只能从开放的站点配送</span><span class="o">)</span>
+<span class="w">  </span><span class="err">Σⱼ</span><span class="w"> </span><span class="n">dⱼ</span><span class="err">·</span><span class="n">xᵢⱼ</span><span class="w"> </span><span class="err">≤</span><span class="w"> </span><span class="n">Cᵢ</span><span class="err">·</span><span class="n">yᵢ</span><span class="o">,</span><span class="w"> </span><span class="err">∀</span><span class="n">i</span><span class="w">               </span><span class="o">(</span><span class="err">站点容量约束</span><span class="o">)</span>
+<span class="w">  </span><span class="n">yᵢ</span><span class="w"> </span><span class="err">∈</span><span class="w"> </span><span class="o">{</span><span class="mi">0</span><span class="o">,</span><span class="mi">1</span><span class="o">},</span><span class="w">        </span><span class="err">∀</span><span class="n">i</span><span class="w">                </span><span class="o">(</span><span class="err">站点开关决策</span><span class="o">)</span>
+<span class="w">  </span><span class="n">xᵢⱼ</span><span class="w"> </span><span class="err">≥</span><span class="w"> </span><span class="mi">0</span><span class="o">,</span><span class="w">           </span><span class="err">∀</span><span class="n">i</span><span class="o">,</span><span class="n">j</span><span class="w">              </span><span class="o">(</span><span class="err">配送分配比例</span><span class="o">)</span>
+
+<span class="err">其中：</span>
+<span class="w">  </span><span class="n">fᵢ</span><span class="o">:</span><span class="w"> </span><span class="err">站点</span><span class="n">i的固定成本</span>
+<span class="w">  </span><span class="n">cᵢⱼ</span><span class="o">:</span><span class="w"> </span><span class="err">从站点</span><span class="n">i到客户j的配送成本</span>
+<span class="w">  </span><span class="n">dⱼ</span><span class="o">:</span><span class="w"> </span><span class="err">客户</span><span class="n">j的需求量</span>
+<span class="w">  </span><span class="n">Cᵢ</span><span class="o">:</span><span class="w"> </span><span class="err">站点</span><span class="n">i的最大容量</span>
+</code></pre></div>
+
+<h3 id="512">5.1.2 战术规划（周度/日度）</h3>
+<p>战术规划在战略框架内做中期优化，重点解决供需平衡和资源配置：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                      战术规划优化流程                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  历史数据         预测模型         优化决策                │
+│  ┌─────┐        ┌─────┐        ┌─────┐                  │
+│  │订单 │───────►│需求 │───────►│运力 │                  │
+│  │轨迹 │        │预测 │        │调配 │                  │
+│  │时长 │        └─────┘        └─────┘                  │
+│  └─────┘            │              │                       │
+│                     ▼              ▼                       │
+│              ┌──────────┐   ┌──────────┐                 │
+│              │时段分解  │   │区域分配  │                 │
+│              │(峰/谷/平)│   │(跨区支援)│                 │
+│              └──────────┘   └──────────┘                 │
+│                                                             │
+│  核心算法：Multi-Period Vehicle Routing Problem (MPVRP)    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<p>战术规划的典型问题是班次优化（Shift Scheduling），需要在满足服务水平的前提下最小化人力成本：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">minimize</span><span class="o">:</span><span class="w"> </span><span class="err">Σₜ</span><span class="w"> </span><span class="err">Σₛ</span><span class="w"> </span><span class="n">cₛ</span><span class="err">·</span><span class="n">xₜₛ</span>
+
+<span class="n">subject</span><span class="w"> </span><span class="n">to</span><span class="o">:</span>
+<span class="w">  </span><span class="err">Σₛ</span><span class="w"> </span><span class="n">aₜₛ</span><span class="err">·</span><span class="n">xₜₛ</span><span class="w"> </span><span class="err">≥</span><span class="w"> </span><span class="n">Dₜ</span><span class="o">,</span><span class="w">    </span><span class="err">∀</span><span class="n">t</span><span class="w"> </span><span class="err">∈</span><span class="w"> </span><span class="n">TimePeriods</span><span class="w">  </span><span class="o">(</span><span class="err">满足各时段需求</span><span class="o">)</span>
+<span class="w">  </span><span class="n">xₜₛ</span><span class="w"> </span><span class="err">≤</span><span class="w"> </span><span class="n">Aₛ</span><span class="o">,</span><span class="w">           </span><span class="err">∀</span><span class="n">t</span><span class="o">,</span><span class="n">s</span><span class="w">              </span><span class="o">(</span><span class="err">可用人力约束</span><span class="o">)</span>
+<span class="w">  </span><span class="err">Σₜ</span><span class="w"> </span><span class="n">xₜₛ</span><span class="err">·</span><span class="n">hₛ</span><span class="w"> </span><span class="err">≤</span><span class="w"> </span><span class="n">Hmax</span><span class="o">,</span><span class="w">   </span><span class="err">∀</span><span class="n">s</span><span class="w">                </span><span class="o">(</span><span class="err">工时上限约束</span><span class="o">)</span>
+<span class="w">  </span><span class="n">xₜₛ</span><span class="w"> </span><span class="err">≥</span><span class="w"> </span><span class="mi">0</span><span class="o">,</span><span class="w">            </span><span class="err">∀</span><span class="n">t</span><span class="o">,</span><span class="n">s</span><span class="w">              </span><span class="o">(</span><span class="err">非负约束</span><span class="o">)</span>
+
+<span class="err">其中：</span>
+<span class="w">  </span><span class="n">cₛ</span><span class="o">:</span><span class="w"> </span><span class="err">班次</span><span class="n">s的单位成本</span>
+<span class="w">  </span><span class="n">aₜₛ</span><span class="o">:</span><span class="w"> </span><span class="err">班次</span><span class="n">s在时段t的覆盖系数</span>
+<span class="w">  </span><span class="n">Dₜ</span><span class="o">:</span><span class="w"> </span><span class="err">时段</span><span class="n">t的运力需求</span>
+<span class="w">  </span><span class="n">Aₛ</span><span class="o">:</span><span class="w"> </span><span class="err">班次</span><span class="n">s的可用人数</span>
+<span class="w">  </span><span class="n">hₛ</span><span class="o">:</span><span class="w"> </span><span class="err">班次</span><span class="n">s的工作时长</span>
+</code></pre></div>
+
+<h3 id="513">5.1.3 操作规划（小时级/分钟级）</h3>
+<p>操作规划负责实时微调，确保系统平稳运行：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│<span class="w">                    </span>操作规划实时决策引擎<span class="w">                      </span>│
+├─────────────────────────────────────────────────────────────┤
+│<span class="w">                                                             </span>│
+│<span class="w">  </span>实时监控<span class="w">                    </span>动态调整<span class="w">                       </span>│
+│<span class="w">  </span>┌──────────┐<span class="w">              </span>┌──────────┐<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w"> </span>订单积压<span class="w"> </span>│<span class="w">              </span>│<span class="w"> </span>运力调度<span class="w"> </span>│<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w"> </span>骑手分布<span class="w"> </span>│<span class="w">  </span>─────────►<span class="w">  </span>│<span class="w"> </span>区域联动<span class="w"> </span>│<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w"> </span>路况变化<span class="w"> </span>│<span class="w">              </span>│<span class="w"> </span>激励发放<span class="w"> </span>│<span class="w">                  </span>│
+│<span class="w">  </span>└──────────┘<span class="w">              </span>└──────────┘<span class="w">                  </span>│
+│<span class="w">       </span>│<span class="w">                          </span>│<span class="w">                         </span>│
+│<span class="w">       </span>▼<span class="w">                          </span>▼<span class="w">                         </span>│
+│<span class="w">  </span>┌────────────────────────────────────┐<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w">        </span>控制策略库<span class="w">                   </span>│<span class="w">                  </span>│
+│<span class="w">  </span>├────────────────────────────────────┤<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w"> </span><span class="k">IF</span><span class="w"> </span>积压<span class="w"> </span><span class="o">&gt;</span><span class="w"> </span>阈值<span class="w"> </span><span class="k">THEN</span><span class="w"> </span>发放加价券<span class="w">     </span>│<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w"> </span><span class="k">IF</span><span class="w"> </span>运力缺口<span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">20</span><span class="o">%</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span>跨区调配<span class="w">    </span>│<span class="w">                  </span>│
+│<span class="w">  </span>│<span class="w"> </span><span class="k">IF</span><span class="w"> </span>雨天<span class="w"> </span><span class="k">THEN</span><span class="w"> </span>延长配送时限<span class="w">         </span>│<span class="w">                  </span>│
+│<span class="w">  </span>└────────────────────────────────────┘<span class="w">                  </span>│
+│<span class="w">                                                             </span>│
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h2 id="52">5.2 站点选址与容量规划</h2>
+<p>站点是外卖履约网络的基础节点，其位置和容量直接影响配送效率和成本结构。</p>
+<h3 id="521">5.2.1 多目标选址优化</h3>
+<p>现实中的站点选址需要平衡多个相互冲突的目标：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    站点选址多目标优化                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  目标函数组合：                                             │
+│                                                             │
+│  1. 成本最小化：                                           │
+│     minimize: Σ(租金ᵢ + 人力ᵢ + 运营ᵢ)                    │
+│                                                             │
+│  2. 覆盖最大化：                                           │
+│     maximize: Σ Population(coverage_areaᵢ)                 │
+│                                                             │
+│  3. 时效最优化：                                           │
+│     minimize: Σ avg_delivery_timeᵢ × orderᵢ                │
+│                                                             │
+│  4. 鲁棒性提升：                                           │
+│     maximize: min(backup_capacityᵢ)                        │
+│                                                             │
+│  Pareto最优前沿：                                          │
+│                                                             │
+│     成本 ↑                                                  │
+│         │ ○ 低成本                                         │
+│         │   ＼ 高积压                                      │
+│         │     ○─────○ 平衡点                              │
+│         │           ＼                                     │
+│         │             ○ 高服务                             │
+│         │               低积压                             │
+│         └────────────────► 服务质量                        │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="522">5.2.2 层级化站点体系</h3>
+<p>美团采用多层级站点体系，不同层级承担不同功能：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                      站点层级架构                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  一级枢纽站（Hub）                                          │
+│  ┌─────────────────────────────────┐                      │
+│  │ • 覆盖范围：5-10km              │                      │
+│  │ • 运力规模：200-500人           │                      │
+│  │ • 功能定位：区域调度中心       │                      │
+│  └────────────┬────────────────────┘                      │
+│               │                                             │
+│      ┌────────┴────────┬────────────┐                     │
+│      ▼                 ▼            ▼                     │
+│  二级配送站        二级配送站    二级配送站                │
+│  ┌─────────┐      ┌─────────┐  ┌─────────┐              │
+│  │ 3-5km   │      │ 3-5km   │  │ 3-5km   │              │
+│  │ 50-100人│      │ 50-100人│  │ 50-100人│              │
+│  └────┬────┘      └────┬────┘  └────┬────┘              │
+│       │                │            │                      │
+│   ┌───┴───┐       ┌───┴───┐    ┌───┴───┐                │
+│   ▼       ▼       ▼       ▼    ▼       ▼                │
+│  前置点  前置点  前置点  前置点 前置点  前置点            │
+│  (1-2km) (1-2km) (1-2km) (1-2km)(1-2km) (1-2km)          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="523">5.2.3 动态容量调整</h3>
+<p>站点容量需要根据时段和季节动态调整：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 容量规划算法伪代码</span>
+<span class="k">def</span> <span class="nf">calculate_station_capacity</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">time_period</span><span class="p">):</span>
+    <span class="c1"># 基础容量</span>
+    <span class="n">base_capacity</span> <span class="o">=</span> <span class="n">get_base_capacity</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+
+    <span class="c1"># 时段调整系数</span>
+    <span class="n">time_factor</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;morning_peak&#39;</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">,</span>    <span class="c1"># 早高峰</span>
+        <span class="s1">&#39;lunch_peak&#39;</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>      <span class="c1"># 午高峰</span>
+        <span class="s1">&#39;dinner_peak&#39;</span><span class="p">:</span> <span class="mf">1.6</span><span class="p">,</span>     <span class="c1"># 晚高峰</span>
+        <span class="s1">&#39;normal&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>          <span class="c1"># 平峰</span>
+        <span class="s1">&#39;valley&#39;</span><span class="p">:</span> <span class="mf">0.6</span>           <span class="c1"># 低谷</span>
+    <span class="p">}[</span><span class="n">time_period</span><span class="p">]</span>
+
+    <span class="c1"># 季节调整系数</span>
+    <span class="n">season_factor</span> <span class="o">=</span> <span class="n">get_season_factor</span><span class="p">(</span><span class="n">current_date</span><span class="p">)</span>
+
+    <span class="c1"># 天气调整系数</span>
+    <span class="n">weather_factor</span> <span class="o">=</span> <span class="n">get_weather_factor</span><span class="p">(</span><span class="n">weather_condition</span><span class="p">)</span>
+
+    <span class="c1"># 历史溢出率修正</span>
+    <span class="n">overflow_correction</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">historical_overflow_rate</span> <span class="o">*</span> <span class="mf">0.2</span>
+
+    <span class="c1"># 最终容量</span>
+    <span class="n">final_capacity</span> <span class="o">=</span> <span class="n">base_capacity</span> <span class="o">*</span> <span class="n">time_factor</span> <span class="o">*</span> <span class="n">season_factor</span> <span class="o">*</span> \
+                    <span class="n">weather_factor</span> <span class="o">*</span> <span class="n">overflow_correction</span>
+
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">final_capacity</span><span class="p">,</span> <span class="n">physical_limit</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="53">5.3 运力结构设计</h2>
+<p>运力结构设计是规划引擎的核心任务之一，需要在成本、效率、稳定性之间找到最优平衡点。</p>
+<h3 id="531">5.3.1 多元化运力体系</h3>
+<p>美团采用"专送+快送+众包"的三层运力结构，各有特点和适用场景：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    运力结构金字塔                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│                    ╱─────────╲                             │
+│                   ╱  众包骑手  ╲                           │
+│                  ╱ • 弹性运力  ╲                          │
+│                 ╱  • 低固定成本  ╲                         │
+│                ╱   • 峰值补充    ╲                        │
+│               ╱─────────────────────╲                      │
+│              ╱      快送骑手         ╲                     │
+│             ╱   • 兼职/灵活排班      ╲                    │
+│            ╱    • 中等稳定性         ╲                   │
+│           ╱     • 区域化管理          ╲                  │
+│          ╱───────────────────────────────╲                 │
+│         ╱         专送骑手              ╲                │
+│        ╱     • 全职/固定排班             ╲               │
+│       ╱      • 高稳定性/高服务质量        ╲              │
+│      ╱       • 核心运力保障               ╲             │
+│     ╱─────────────────────────────────────────╲            │
+│                                                             │
+│  运力配比优化模型：                                         │
+│  专送 : 快送 : 众包 = 40% : 35% : 25% (典型配比)          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="532">5.3.2 运力成本结构分析</h3>
+<p>不同类型运力的成本结构差异显著，需要精细化管理：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    运力成本结构对比                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  成本项目         专送        快送        众包             │
+│  ─────────────────────────────────────────────────         │
+│  基本工资         60%         40%         0%               │
+│  绩效提成         25%         35%         70%              │
+│  社保福利         10%         5%          0%               │
+│  管理成本         3%          10%         15%              │
+│  装备补贴         2%          10%         15%              │
+│                                                             │
+│  单均成本(元)     6.5         5.8         5.2              │
+│  服务稳定性       ★★★★★       ★★★☆☆       ★★☆☆☆            │
+│  峰值弹性         ★★☆☆☆       ★★★★☆       ★★★★★            │
+│                                                             │
+│  最优使用场景：                                             │
+│  • 专送：核心商圈、品牌商家、高价值订单                    │
+│  • 快送：次核心区域、常规订单、日常运力                    │
+│  • 众包：峰值补充、偏远订单、临时需求                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="533">5.3.3 动态运力调配算法</h3>
+<p>运力调配需要考虑时空分布不均的问题：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 跨区域运力调配优化</span>
+<span class="k">def</span> <span class="nf">optimize_cross_region_allocation</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    目标：最小化全局运力缺口</span>
+<span class="sd">    约束：调配成本、骑手接受度、服务质量</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># 构建运力供需矩阵</span>
+    <span class="n">supply_demand_matrix</span> <span class="o">=</span> <span class="n">build_matrix</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">time_slot</span><span class="p">)</span>
+
+    <span class="c1"># 识别盈余区域和缺口区域</span>
+    <span class="n">surplus_regions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">deficit_regions</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+        <span class="n">net_capacity</span> <span class="o">=</span> <span class="n">supply_demand_matrix</span><span class="p">[</span><span class="n">region</span><span class="p">][</span><span class="s1">&#39;supply&#39;</span><span class="p">]</span> <span class="o">-</span> \
+                      <span class="n">supply_demand_matrix</span><span class="p">[</span><span class="n">region</span><span class="p">][</span><span class="s1">&#39;demand&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">net_capacity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">surplus_regions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">region</span><span class="p">,</span> <span class="n">net_capacity</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">deficit_regions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">region</span><span class="p">,</span> <span class="o">-</span><span class="n">net_capacity</span><span class="p">))</span>
+
+    <span class="c1"># 构建调配方案（最小成本流问题）</span>
+    <span class="n">allocation_plan</span> <span class="o">=</span> <span class="n">solve_min_cost_flow</span><span class="p">(</span>
+        <span class="n">surplus_regions</span><span class="p">,</span>
+        <span class="n">deficit_regions</span><span class="p">,</span>
+        <span class="n">distance_matrix</span><span class="p">,</span>
+        <span class="n">incentive_cost</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 考虑骑手意愿和历史表现</span>
+    <span class="n">adjusted_plan</span> <span class="o">=</span> <span class="n">adjust_for_rider_preference</span><span class="p">(</span>
+        <span class="n">allocation_plan</span><span class="p">,</span>
+        <span class="n">rider_historical_data</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">adjusted_plan</span>
+
+<span class="c1"># 运力结构优化模型</span>
+<span class="k">def</span> <span class="nf">optimize_workforce_mix</span><span class="p">(</span><span class="n">demand_forecast</span><span class="p">,</span> <span class="n">cost_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    决策变量：</span>
+<span class="sd">    x1: 专送骑手数量</span>
+<span class="sd">    x2: 快送骑手数量</span>
+<span class="sd">    x3: 众包骑手数量</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">OptimizationModel</span><span class="p">()</span>
+
+    <span class="c1"># 目标函数：最小化总成本</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="p">(</span><span class="n">cost_params</span><span class="p">[</span><span class="s1">&#39;zhuansong&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span>
+                 <span class="n">cost_params</span><span class="p">[</span><span class="s1">&#39;kuaisong&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span>
+                 <span class="n">cost_params</span><span class="p">[</span><span class="s1">&#39;zhongbao&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">x3</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">set_objective</span><span class="p">(</span><span class="n">minimize</span><span class="p">(</span><span class="n">total_cost</span><span class="p">))</span>
+
+    <span class="c1"># 约束条件</span>
+    <span class="c1"># 1. 满足各时段需求</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_periods</span><span class="p">:</span>
+        <span class="n">capacity</span> <span class="o">=</span> <span class="p">(</span><span class="n">efficiency</span><span class="p">[</span><span class="s1">&#39;zhuansong&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span>
+                   <span class="n">efficiency</span><span class="p">[</span><span class="s1">&#39;kuaisong&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span>
+                   <span class="n">efficiency</span><span class="p">[</span><span class="s1">&#39;zhongbao&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">x3</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">capacity</span> <span class="o">&gt;=</span> <span class="n">demand_forecast</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+
+    <span class="c1"># 2. 服务质量约束（专送比例不低于下限）</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">x1</span> <span class="o">&gt;=</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">x3</span><span class="p">))</span>
+
+    <span class="c1"># 3. 管理跨度约束</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">x1</span> <span class="o">&lt;=</span> <span class="n">max_fulltime_riders</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">x3</span> <span class="o">&lt;=</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">x3</span><span class="p">))</span>  <span class="c1"># 众包不超40%</span>
+
+    <span class="c1"># 4. 预算约束</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">total_cost</span> <span class="o">&lt;=</span> <span class="n">budget_limit</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="54">5.4 区域划分与边界优化</h2>
+<p>科学的区域划分是提升配送效率的基础，需要综合考虑地理、需求、运力等多维因素。</p>
+<h3 id="541">5.4.1 多维度区域划分</h3>
+<p>区域划分不是简单的地理切分，而是多维优化问题：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    区域划分决策框架                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  输入维度：                                                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │   地理因素   │  │   需求因素   │  │   运力因素   │    │
+│  ├──────────────┤  ├──────────────┤  ├──────────────┤    │
+│  │ • 道路网络   │  │ • 订单密度   │  │ • 骑手分布   │    │
+│  │ • 自然边界   │  │ • 时段特征   │  │ • 运力类型   │    │
+│  │ • 商圈分布   │  │ • 客单价     │  │ • 效率差异   │    │
+│  └──────────────┘  └──────────────┘  └──────────────┘    │
+│           │                 │                 │             │
+│           └─────────────────┼─────────────────┘             │
+│                             ▼                               │
+│                    ┌──────────────┐                        │
+│                    │  聚类算法    │                        │
+│                    │  (K-means+)  │                        │
+│                    └──────────────┘                        │
+│                             │                               │
+│                             ▼                               │
+│  输出结果：                                                 │
+│  ┌────────────────────────────────────────────┐           │
+│  │         优化后的配送区域                   │           │
+│  │  ┌────┬────┬────┬────┐                   │           │
+│  │  │ A1 │ A2 │ A3 │ A4 │  均衡度指标：     │           │
+│  │  ├────┼────┼────┼────┤  • 订单量方差↓   │           │
+│  │  │ B1 │ B2 │ B3 │ B4 │  • 配送距离↓     │           │
+│  │  ├────┼────┼────┼────┤  • 运力利用率↑   │           │
+│  │  │ C1 │ C2 │ C3 │ C4 │  • 跨区订单↓     │           │
+│  │  └────┴────┴────┴────┘                   │           │
+│  └────────────────────────────────────────────┘           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="542">5.4.2 动态边界调整机制</h3>
+<p>区域边界需要根据实时情况动态调整：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 动态边界优化算法</span>
+<span class="k">class</span> <span class="nc">DynamicBoundaryOptimizer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">optimize_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        基于当前状态动态调整区域边界</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. 识别问题区域</span>
+        <span class="n">problem_zones</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify_problem_zones</span><span class="p">(</span><span class="n">current_state</span><span class="p">)</span>
+
+        <span class="c1"># 2. 生成调整方案</span>
+        <span class="n">adjustment_proposals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">zone</span> <span class="ow">in</span> <span class="n">problem_zones</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">zone</span><span class="p">[</span><span class="s1">&#39;issue_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;overload&#39;</span><span class="p">:</span>
+                <span class="c1"># 过载区域：缩小边界或分割</span>
+                <span class="n">proposal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_split_proposal</span><span class="p">(</span><span class="n">zone</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">zone</span><span class="p">[</span><span class="s1">&#39;issue_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;underutilized&#39;</span><span class="p">:</span>
+                <span class="c1"># 利用不足：扩大边界或合并</span>
+                <span class="n">proposal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_merge_proposal</span><span class="p">(</span><span class="n">zone</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># 不均衡：重新划分</span>
+                <span class="n">proposal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_rebalance_proposal</span><span class="p">(</span><span class="n">zone</span><span class="p">)</span>
+
+            <span class="n">adjustment_proposals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proposal</span><span class="p">)</span>
+
+        <span class="c1"># 3. 评估调整影响</span>
+        <span class="n">best_proposal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_proposals</span><span class="p">(</span><span class="n">adjustment_proposals</span><span class="p">)</span>
+
+        <span class="c1"># 4. 执行渐进式调整</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradual_adjustment</span><span class="p">(</span><span class="n">best_proposal</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">identify_problem_zones</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;识别需要调整的问题区域&quot;&quot;&quot;</span>
+        <span class="n">problems</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">zone_id</span><span class="p">,</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># 计算关键指标</span>
+            <span class="n">utilization</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;assigned_orders&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;capacity&#39;</span><span class="p">]</span>
+            <span class="n">avg_distance</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;total_distance&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;order_count&#39;</span><span class="p">]</span>
+            <span class="n">delay_rate</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;delayed_orders&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;total_orders&#39;</span><span class="p">]</span>
+
+            <span class="c1"># 判定问题类型</span>
+            <span class="k">if</span> <span class="n">utilization</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;zone_id&#39;</span><span class="p">:</span> <span class="n">zone_id</span><span class="p">,</span>
+                    <span class="s1">&#39;issue_type&#39;</span><span class="p">:</span> <span class="s1">&#39;overload&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;severity&#39;</span><span class="p">:</span> <span class="n">utilization</span> <span class="o">-</span> <span class="mf">0.95</span>
+                <span class="p">})</span>
+            <span class="k">elif</span> <span class="n">utilization</span> <span class="o">&lt;</span> <span class="mf">0.6</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;zone_id&#39;</span><span class="p">:</span> <span class="n">zone_id</span><span class="p">,</span>
+                    <span class="s1">&#39;issue_type&#39;</span><span class="p">:</span> <span class="s1">&#39;underutilized&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;severity&#39;</span><span class="p">:</span> <span class="mf">0.6</span> <span class="o">-</span> <span class="n">utilization</span>
+                <span class="p">})</span>
+            <span class="k">elif</span> <span class="n">delay_rate</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;zone_id&#39;</span><span class="p">:</span> <span class="n">zone_id</span><span class="p">,</span>
+                    <span class="s1">&#39;issue_type&#39;</span><span class="p">:</span> <span class="s1">&#39;inefficient&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;severity&#39;</span><span class="p">:</span> <span class="n">delay_rate</span>
+                <span class="p">})</span>
+
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">problems</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;severity&#39;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="543">5.4.3 基于图论的区域优化</h3>
+<p>利用图论方法进行区域划分，确保连通性和紧凑性：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 基于最小割的区域划分</span>
+<span class="k">def</span> <span class="nf">graph_based_zone_partition</span><span class="p">(</span><span class="n">city_graph</span><span class="p">,</span> <span class="n">num_zones</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    使用谱聚类方法进行区域划分</span>
+<span class="sd">    目标：最小化跨区流量，最大化区内连通性</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># 构建邻接矩阵（基于订单流量）</span>
+    <span class="n">adjacency_matrix</span> <span class="o">=</span> <span class="n">build_flow_adjacency_matrix</span><span class="p">(</span><span class="n">city_graph</span><span class="p">)</span>
+
+    <span class="c1"># 计算拉普拉斯矩阵</span>
+    <span class="n">degree_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">adjacency_matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">laplacian</span> <span class="o">=</span> <span class="n">degree_matrix</span> <span class="o">-</span> <span class="n">adjacency_matrix</span>
+
+    <span class="c1"># 归一化拉普拉斯矩阵</span>
+    <span class="n">normalized_laplacian</span> <span class="o">=</span> <span class="n">normalize_laplacian</span><span class="p">(</span><span class="n">laplacian</span><span class="p">)</span>
+
+    <span class="c1"># 特征分解</span>
+    <span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">normalized_laplacian</span><span class="p">)</span>
+
+    <span class="c1"># 选择前k个最小特征值对应的特征向量</span>
+    <span class="n">k_smallest_eigenvectors</span> <span class="o">=</span> <span class="n">eigenvectors</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_zones</span><span class="p">]</span>
+
+    <span class="c1"># K-means聚类</span>
+    <span class="n">kmeans</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="n">num_zones</span><span class="p">)</span>
+    <span class="n">zone_labels</span> <span class="o">=</span> <span class="n">kmeans</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">(</span><span class="n">k_smallest_eigenvectors</span><span class="p">)</span>
+
+    <span class="c1"># 后处理：确保连通性</span>
+    <span class="n">zones</span> <span class="o">=</span> <span class="n">ensure_connectivity</span><span class="p">(</span><span class="n">zone_labels</span><span class="p">,</span> <span class="n">adjacency_matrix</span><span class="p">)</span>
+
+    <span class="c1"># 边界平滑</span>
+    <span class="n">smoothed_zones</span> <span class="o">=</span> <span class="n">smooth_boundaries</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">city_graph</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">smoothed_zones</span>
+</code></pre></div>
+
+<h2 id="55">5.5 仿真系统与方案评估</h2>
+<p>仿真系统是规划引擎的"试验场"，通过模拟真实场景来评估不同规划方案的效果。</p>
+<h3 id="551">5.5.1 离散事件仿真架构</h3>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    配送网络仿真系统架构                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  仿真引擎核心                                               │
+│  ┌──────────────────────────────────────────┐             │
+│  │           事件调度器 (Event Scheduler)     │             │
+│  │  ┌────────────────────────────────────┐  │             │
+│  │  │ 事件队列 (优先级队列)              │  │             │
+│  │  │ • 订单生成事件                     │  │             │
+│  │  │ • 骑手状态变更                     │  │             │
+│  │  │ • 配送完成事件                     │  │             │
+│  │  └────────────────────────────────────┘  │             │
+│  └──────────────────────────────────────────┘             │
+│                         │                                   │
+│                         ▼                                   │
+│  ┌──────────────────────────────────────────┐             │
+│  │           仿真实体 (Simulation Entities)  │             │
+│  ├──────────────────────────────────────────┤             │
+│  │  骑手Agent    订单Agent    商家Agent     │             │
+│  │     │            │            │          │             │
+│  │     └────────────┴────────────┘          │             │
+│  │                  │                        │             │
+│  │           状态转换模型                    │             │
+│  └──────────────────────────────────────────┘             │
+│                         │                                   │
+│                         ▼                                   │
+│  ┌──────────────────────────────────────────┐             │
+│  │         性能指标收集器 (Metrics Collector) │             │
+│  │  • 平均配送时长  • 准时率               │             │
+│  │  • 运力利用率    • 成本结构             │             │
+│  │  • 服务覆盖率    • 异常率               │             │
+│  └──────────────────────────────────────────┘             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="552-what-if">5.5.2 What-if 场景分析</h3>
+<p>仿真系统支持多种假设场景的对比分析：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">ScenarioSimulator</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_config</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_config</span> <span class="o">=</span> <span class="n">base_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">create_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">modifications</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;创建假设场景&quot;&quot;&quot;</span>
+        <span class="n">scenario</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_config</span><span class="p">)</span>
+
+        <span class="c1"># 应用场景修改</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">modifications</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;demand_surge&#39;</span><span class="p">:</span>
+                <span class="c1"># 需求激增场景</span>
+                <span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;order_rate&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;rider_shortage&#39;</span><span class="p">:</span>
+                <span class="c1"># 运力短缺场景</span>
+                <span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;rider_count&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;bad_weather&#39;</span><span class="p">:</span>
+                <span class="c1"># 恶劣天气场景</span>
+                <span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;delivery_speed&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">value</span>
+                <span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;order_rate&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">1.2</span>  <span class="c1"># 需求增加</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;new_station&#39;</span><span class="p">:</span>
+                <span class="c1"># 新增站点场景</span>
+                <span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="n">scenario</span>
+        <span class="p">})</span>
+
+    <span class="k">def</span> <span class="nf">run_comparison</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">3600</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;运行多场景对比&quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="p">:</span>
+            <span class="c1"># 初始化仿真环境</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">SimulationEnvironment</span><span class="p">(</span><span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">])</span>
+
+            <span class="c1"># 运行仿真</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+
+            <span class="c1"># 收集结果</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;avg_delivery_time&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">get_avg_delivery_time</span><span class="p">(),</span>
+                <span class="s1">&#39;on_time_rate&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">get_on_time_rate</span><span class="p">(),</span>
+                <span class="s1">&#39;utilization&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">get_utilization_rate</span><span class="p">(),</span>
+                <span class="s1">&#39;cost_per_order&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">get_unit_cost</span><span class="p">(),</span>
+                <span class="s1">&#39;unserved_orders&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">get_unserved_count</span><span class="p">()</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_comparison_report</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">sensitivity_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value_range</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;参数敏感性分析&quot;&quot;&quot;</span>
+        <span class="n">sensitivity_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_range</span><span class="p">:</span>
+            <span class="n">scenario</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_config</span><span class="p">)</span>
+            <span class="n">scenario</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+            <span class="n">env</span> <span class="o">=</span> <span class="n">SimulationEnvironment</span><span class="p">(</span><span class="n">scenario</span><span class="p">)</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">3600</span><span class="p">)</span>
+
+            <span class="n">sensitivity_results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="n">parameter</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+                <span class="s1">&#39;performance&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">get_key_metrics</span><span class="p">()</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_sensitivity_curve</span><span class="p">(</span><span class="n">sensitivity_results</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="553">5.5.3 蒙特卡洛仿真优化</h3>
+<p>通过大量随机仿真寻找最优规划方案：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">monte_carlo_optimization</span><span class="p">(</span><span class="n">objective_function</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    蒙特卡洛方法搜索最优配置</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">best_solution</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">best_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;-inf&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+        <span class="c1"># 随机生成候选方案</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">generate_random_configuration</span><span class="p">()</span>
+
+        <span class="c1"># 检查约束条件</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">satisfy_constraints</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># 运行多次仿真取平均（降低随机性影响）</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">SimulationEnvironment</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">3600</span><span class="p">)</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">objective_function</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">())</span>
+            <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+        <span class="n">avg_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+        <span class="c1"># 更新最优解</span>
+        <span class="k">if</span> <span class="n">avg_score</span> <span class="o">&gt;</span> <span class="n">best_score</span><span class="p">:</span>
+            <span class="n">best_score</span> <span class="o">=</span> <span class="n">avg_score</span>
+            <span class="n">best_solution</span> <span class="o">=</span> <span class="n">candidate</span>
+
+        <span class="c1"># 自适应调整搜索范围</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">adjust_search_space</span><span class="p">(</span><span class="n">best_solution</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">best_solution</span><span class="p">,</span> <span class="n">best_score</span>
+</code></pre></div>
+
+<h2 id="56">5.6 规划与调度的协同</h2>
+<p>规划引擎与调度引擎需要紧密协同，形成"战略-战术"的联动机制。</p>
+<h3 id="561">5.6.1 分层决策框架</h3>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                 规划-调度协同决策框架                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  规划层（Planning Layer）                                   │
+│  ┌────────────────────────────────────┐                   │
+│  │  时间尺度：天/周/月                │                   │
+│  │  决策内容：                        │                   │
+│  │  • 站点布局                       │                   │
+│  │  • 运力配置                       │                   │
+│  │  • 服务边界                       │                   │
+│  └─────────────┬──────────────────────┘                   │
+│                │                                            │
+│                │ 约束与指导                                │
+│                ▼                                            │
+│  ┌────────────────────────────────────┐                   │
+│  │         协同接口层                 │                   │
+│  │  • 容量上限  • 成本预算           │                   │
+│  │  • 服务标准  • 覆盖要求           │                   │
+│  └─────────────┬──────────────────────┘                   │
+│                │                                            │
+│                ▼                                            │
+│  调度层（Scheduling Layer）                                │
+│  ┌────────────────────────────────────┐                   │
+│  │  时间尺度：秒/分钟                 │                   │
+│  │  决策内容：                        │                   │
+│  │  • 订单分配                       │                   │
+│  │  • 路径规划                       │                   │
+│  │  • 实时调整                       │                   │
+│  └─────────────┬──────────────────────┘                   │
+│                │                                            │
+│                │ 反馈与学习                                │
+│                ▼                                            │
+│  ┌────────────────────────────────────┐                   │
+│  │         执行效果评估                │                   │
+│  │  • 实际vs计划  • 异常分析         │                   │
+│  │  • 改进建议    • 参数调优         │                   │
+│  └────────────────────────────────────┘                   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="562">5.6.2 双向反馈机制</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">PlanningSchedulingCoordinator</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_engine</span> <span class="o">=</span> <span class="n">PlanningEngine</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduling_engine</span> <span class="o">=</span> <span class="n">SchedulingEngine</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feedback_buffer</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">coordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;规划与调度的协同流程&quot;&quot;&quot;</span>
+
+        <span class="c1"># 1. 规划层生成指导方案</span>
+        <span class="n">planning_decision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">planning_engine</span><span class="o">.</span><span class="n">generate_plan</span><span class="p">()</span>
+
+        <span class="c1"># 2. 转换为调度约束</span>
+        <span class="n">scheduling_constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate_to_constraints</span><span class="p">(</span><span class="n">planning_decision</span><span class="p">)</span>
+
+        <span class="c1"># 3. 调度层在约束下优化</span>
+        <span class="n">scheduling_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduling_engine</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
+            <span class="n">constraints</span><span class="o">=</span><span class="n">scheduling_constraints</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 4. 收集执行反馈</span>
+        <span class="n">execution_feedback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collect_feedback</span><span class="p">(</span><span class="n">scheduling_result</span><span class="p">)</span>
+
+        <span class="c1"># 5. 反馈给规划层</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_engine</span><span class="o">.</span><span class="n">update_model</span><span class="p">(</span><span class="n">execution_feedback</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">scheduling_result</span>
+
+    <span class="k">def</span> <span class="nf">translate_to_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">planning_decision</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;将规划决策转换为调度约束&quot;&quot;&quot;</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;max_delivery_distance&#39;</span><span class="p">:</span> <span class="n">planning_decision</span><span class="p">[</span><span class="s1">&#39;zone_radius&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;min_rider_per_zone&#39;</span><span class="p">:</span> <span class="n">planning_decision</span><span class="p">[</span><span class="s1">&#39;min_capacity&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;service_level_target&#39;</span><span class="p">:</span> <span class="n">planning_decision</span><span class="p">[</span><span class="s1">&#39;sla_target&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;cost_budget&#39;</span><span class="p">:</span> <span class="n">planning_decision</span><span class="p">[</span><span class="s1">&#39;unit_cost_limit&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 动态调整约束松紧度</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_peak_hour</span><span class="p">():</span>
+            <span class="n">constraints</span><span class="p">[</span><span class="s1">&#39;service_level_target&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.95</span>  <span class="c1"># 高峰期适当放松</span>
+
+        <span class="k">return</span> <span class="n">constraints</span>
+
+    <span class="k">def</span> <span class="nf">adaptive_learning</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;基于历史反馈的自适应学习&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feedback_buffer</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="c1"># 分析规划与实际的偏差</span>
+            <span class="n">planning_accuracy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_planning_accuracy</span><span class="p">()</span>
+
+            <span class="c1"># 调整规划参数</span>
+            <span class="k">if</span> <span class="n">planning_accuracy</span> <span class="o">&lt;</span> <span class="mf">0.8</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">planning_engine</span><span class="o">.</span><span class="n">adjust_parameters</span><span class="p">({</span>
+                    <span class="s1">&#39;demand_forecast_weight&#39;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+                    <span class="s1">&#39;safety_margin&#39;</span><span class="p">:</span> <span class="mf">1.15</span><span class="p">,</span>
+                    <span class="s1">&#39;response_speed&#39;</span><span class="p">:</span> <span class="mf">0.9</span>
+                <span class="p">})</span>
+
+            <span class="c1"># 清理旧数据</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feedback_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback_buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">50</span><span class="p">:]</span>
+</code></pre></div>
+
+<h3 id="563">5.6.3 联合优化模型</h3>
+<p>规划与调度的联合优化可以获得全局最优解：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">joint_optimization_model</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    规划-调度联合优化模型</span>
+<span class="sd">    同时考虑长期规划和短期调度</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">MixedIntegerProgram</span><span class="p">()</span>
+
+    <span class="c1"># 决策变量</span>
+    <span class="c1"># 规划层变量</span>
+    <span class="n">y_station</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># 站点开设决策</span>
+    <span class="n">z_zone</span> <span class="o">=</span> <span class="p">{}</span>     <span class="c1"># 区域划分决策</span>
+    <span class="n">w_rider</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c1"># 运力配置决策</span>
+
+    <span class="c1"># 调度层变量</span>
+    <span class="n">x_assign</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># 订单分配决策</span>
+    <span class="n">r_route</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c1"># 路径选择决策</span>
+
+    <span class="c1"># 目标函数：最小化总成本</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">sum</span><span class="p">(</span><span class="n">station_cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">y_station</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">)</span> <span class="o">+</span>  <span class="c1"># 站点成本</span>
+        <span class="nb">sum</span><span class="p">(</span><span class="n">rider_cost</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">w_rider</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">rider_types</span><span class="p">)</span> <span class="o">+</span>   <span class="c1"># 运力成本</span>
+        <span class="nb">sum</span><span class="p">(</span><span class="n">delivery_cost</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">x_assign</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">)</span>      <span class="c1"># 配送成本</span>
+    <span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">set_objective</span><span class="p">(</span><span class="n">minimize</span><span class="p">(</span><span class="n">total_cost</span><span class="p">))</span>
+
+    <span class="c1"># 约束条件</span>
+    <span class="c1"># 1. 规划层约束</span>
+    <span class="k">for</span> <span class="n">zone</span> <span class="ow">in</span> <span class="n">zones</span><span class="p">:</span>
+        <span class="c1"># 每个区域至少一个站点</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">y_station</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">zone</span><span class="o">.</span><span class="n">stations</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># 运力容量约束</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="n">w_rider</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">capacity</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">zone</span><span class="o">.</span><span class="n">riders</span><span class="p">)</span> <span class="o">&gt;=</span> 
+            <span class="n">zone</span><span class="o">.</span><span class="n">expected_demand</span> <span class="o">*</span> <span class="mf">1.2</span>  <span class="c1"># 20%缓冲</span>
+        <span class="p">)</span>
+
+    <span class="c1"># 2. 调度层约束</span>
+    <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">:</span>
+        <span class="c1"># 每个订单必须被分配</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x_assign</span><span class="p">[</span><span class="n">order</span><span class="p">,</span> <span class="n">rider</span><span class="p">]</span> <span class="k">for</span> <span class="n">rider</span> <span class="ow">in</span> <span class="n">riders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># 时间窗约束</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span>
+            <span class="n">delivery_time</span><span class="p">[</span><span class="n">order</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">order</span><span class="o">.</span><span class="n">promised_time</span>
+        <span class="p">)</span>
+
+    <span class="c1"># 3. 耦合约束（规划影响调度）</span>
+    <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">rider</span> <span class="ow">in</span> <span class="n">order_rider_pairs</span><span class="p">:</span>
+        <span class="c1"># 只能从开放的站点派送</span>
+        <span class="n">station</span> <span class="o">=</span> <span class="n">get_rider_station</span><span class="p">(</span><span class="n">rider</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">x_assign</span><span class="p">[</span><span class="n">order</span><span class="p">,</span> <span class="n">rider</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">y_station</span><span class="p">[</span><span class="n">station</span><span class="p">])</span>
+
+        <span class="c1"># 配送距离受区域划分影响</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span>
+            <span class="n">distance</span><span class="p">[</span><span class="n">order</span><span class="p">,</span> <span class="n">rider</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_zone_radius</span> <span class="o">*</span> <span class="n">z_zone</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">zone</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="_1">本章小结</h2>
+<p>规划引擎是美团外卖系统的"大脑"，通过战略性的结构优化为整个系统奠定效率基础。本章我们学习了：</p>
+<p><strong>核心概念</strong>：</p>
+<ul>
+<li><strong>三层规划体系</strong>：战略规划（月度）、战术规划（周度）、操作规划（小时级），不同层级解决不同时间尺度的问题</li>
+<li><strong>设施选址问题</strong>：经典的NP-hard问题，需要在成本和服务质量间平衡</li>
+<li><strong>运力结构设计</strong>：专送、快送、众包的组合优化，实现成本与稳定性的平衡</li>
+<li><strong>区域划分优化</strong>：基于图论和聚类的方法，最小化跨区流量，最大化区内效率</li>
+<li><strong>仿真评估系统</strong>：通过离散事件仿真和蒙特卡洛方法评估规划方案</li>
+</ul>
+<p><strong>关键公式</strong>：</p>
+<ol>
+<li><strong>设施选址目标函数</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>min Σᵢ fᵢ·yᵢ + ΣᵢΣⱼ cᵢⱼ·xᵢⱼ
+</code></pre></div>
+
+<p>其中fᵢ是固定成本，cᵢⱼ是配送成本</p>
+<ol start="2">
+<li><strong>运力配比优化</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="err">专送</span><span class="o">:</span><span class="err">快送</span><span class="o">:</span><span class="err">众包</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="o">%:</span><span class="mi">35</span><span class="o">%:</span><span class="mi">25</span><span class="o">%</span><span class="w"> </span><span class="o">(</span><span class="err">典型配比</span><span class="o">)</span>
+</code></pre></div>
+
+<ol start="3">
+<li><strong>区域划分评价指标</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="err">均衡度</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">σ</span><span class="p">(</span><span class="n">zone_loads</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="err">μ</span><span class="p">(</span><span class="n">zone_loads</span><span class="p">)</span>
+</code></pre></div>
+
+<ol start="4">
+<li><strong>容量规划公式</strong>：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>容量 = 基础容量 × 时段系数 × 季节系数 × 天气系数 × 溢出修正
+</code></pre></div>
+
+<p><strong>实践要点</strong>：</p>
+<ul>
+<li>规划决策影响深远，需要充分的数据支撑和仿真验证</li>
+<li>多目标优化常常没有唯一最优解，需要权衡取舍</li>
+<li>动态调整机制很重要，要能根据实际运行情况优化规划</li>
+<li>规划与调度的协同是关键，需要建立双向反馈机制</li>
+</ul>
+<h2 id="gotchas">常见陷阱与错误（Gotchas）</h2>
+<h3 id="1">1. 过度优化陷阱</h3>
+<p><strong>问题</strong>：追求数学上的最优解，忽视实际可执行性</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误做法</span>
+<span class="n">optimal_zones</span> <span class="o">=</span> <span class="n">solve_perfect_partition</span><span class="p">(</span><span class="n">city_graph</span><span class="p">)</span>  <span class="c1"># 完美但不实际</span>
+
+<span class="c1"># ✅ 正确做法</span>
+<span class="n">practical_zones</span> <span class="o">=</span> <span class="n">solve_with_constraints</span><span class="p">(</span>
+    <span class="n">city_graph</span><span class="p">,</span>
+    <span class="n">min_zone_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># 最小管理规模</span>
+    <span class="n">max_shape_irregularity</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># 形状规整性</span>
+    <span class="n">respect_natural_boundaries</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># 尊重自然边界</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="2">2. 静态规划误区</h3>
+<p><strong>问题</strong>：一次性规划后不再调整，无法适应变化</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误做法</span>
+<span class="n">annual_plan</span> <span class="o">=</span> <span class="n">create_yearly_plan</span><span class="p">()</span>
+<span class="n">execute_blindly</span><span class="p">(</span><span class="n">annual_plan</span><span class="p">)</span>  <span class="c1"># 全年不变</span>
+
+<span class="c1"># ✅ 正确做法</span>
+<span class="n">adaptive_plan</span> <span class="o">=</span> <span class="n">create_adaptive_plan</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="n">year</span><span class="p">:</span>
+    <span class="n">adjusted_plan</span> <span class="o">=</span> <span class="n">adaptive_plan</span><span class="o">.</span><span class="n">adjust</span><span class="p">(</span>
+        <span class="n">current_performance</span><span class="p">,</span>
+        <span class="n">market_changes</span><span class="p">,</span>
+        <span class="n">seasonal_factors</span>
+    <span class="p">)</span>
+    <span class="n">execute_with_monitoring</span><span class="p">(</span><span class="n">adjusted_plan</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="3">3. 孤立优化问题</h3>
+<p><strong>问题</strong>：各模块独立优化，忽视相互影响</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误做法</span>
+<span class="n">station_plan</span> <span class="o">=</span> <span class="n">optimize_stations</span><span class="p">()</span>
+<span class="n">zone_plan</span> <span class="o">=</span> <span class="n">optimize_zones</span><span class="p">()</span>
+<span class="n">rider_plan</span> <span class="o">=</span> <span class="n">optimize_riders</span><span class="p">()</span>
+<span class="c1"># 三个计划可能相互冲突</span>
+
+<span class="c1"># ✅ 正确做法</span>
+<span class="n">integrated_plan</span> <span class="o">=</span> <span class="n">joint_optimization</span><span class="p">(</span>
+    <span class="n">station_variables</span><span class="p">,</span>
+    <span class="n">zone_variables</span><span class="p">,</span>
+    <span class="n">rider_variables</span><span class="p">,</span>
+    <span class="n">coupling_constraints</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="4">4. 仿真偏差风险</h3>
+<p><strong>问题</strong>：仿真模型过度简化，结果与实际偏差大</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误做法</span>
+<span class="n">simple_sim</span> <span class="o">=</span> <span class="n">BasicSimulation</span><span class="p">()</span>
+<span class="n">decision</span> <span class="o">=</span> <span class="n">make_decision</span><span class="p">(</span><span class="n">simple_sim</span><span class="o">.</span><span class="n">run</span><span class="p">())</span>  <span class="c1"># 过度信任简化模型</span>
+
+<span class="c1"># ✅ 正确做法</span>
+<span class="n">validated_sim</span> <span class="o">=</span> <span class="n">CalibratedSimulation</span><span class="p">()</span>
+<span class="n">validated_sim</span><span class="o">.</span><span class="n">calibrate_with_historical_data</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">validated_sim</span><span class="o">.</span><span class="n">run_multiple_scenarios</span><span class="p">()</span>
+<span class="n">decision</span> <span class="o">=</span> <span class="n">make_robust_decision</span><span class="p">(</span>
+    <span class="n">results</span><span class="p">,</span>
+    <span class="n">confidence_interval</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+    <span class="n">worst_case_analysis</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="5_1">5. 成本估算偏差</h3>
+<p><strong>问题</strong>：低估隐性成本，导致规划失真</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误做法</span>
+<span class="n">cost</span> <span class="o">=</span> <span class="n">rent</span> <span class="o">+</span> <span class="n">salary</span>  <span class="c1"># 只考虑显性成本</span>
+
+<span class="c1"># ✅ 正确做法</span>
+<span class="n">total_cost</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">rent</span> <span class="o">+</span>
+    <span class="n">salary</span> <span class="o">+</span>
+    <span class="n">training_cost</span> <span class="o">+</span>
+    <span class="n">turnover_cost</span> <span class="o">+</span>
+    <span class="n">management_overhead</span> <span class="o">+</span>
+    <span class="n">equipment_depreciation</span> <span class="o">+</span>
+    <span class="n">opportunity_cost</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="6">6. 边界硬切割问题</h3>
+<p><strong>问题</strong>：区域边界过于僵硬，导致边界订单处理困难</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误做法</span>
+<span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">location</span> <span class="ow">in</span> <span class="n">zone_a</span><span class="p">:</span>
+    <span class="n">assign_to_zone_a_rider</span><span class="p">()</span>  <span class="c1"># 即使zone_b骑手更近</span>
+
+<span class="c1"># ✅ 正确做法</span>
+<span class="n">nearby_zones</span> <span class="o">=</span> <span class="n">get_adjacent_zones</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+<span class="n">best_rider</span> <span class="o">=</span> <span class="n">find_best_rider_across_zones</span><span class="p">(</span>
+    <span class="n">nearby_zones</span><span class="p">,</span>
+    <span class="n">allow_cross_zone</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">max_extra_distance</span><span class="o">=</span><span class="mi">500</span>  <span class="c1"># 允许500米的跨区</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h2 id="_2">练习题</h2>
+<h3 id="_3">基础题</h3>
+<h4 id="51_1">练习 5.1：站点选址的贪心算法</h4>
+<p>设计一个贪心算法来解决简化版的站点选址问题。给定n个候选站点位置和m个客户位置，每个站点有固定成本fᵢ和容量Cᵢ，每个客户有需求dⱼ。请选择k个站点使得总成本（固定成本+配送成本）最小。</p>
+<p><strong>Hint</strong>：考虑每个站点的"性价比"，即覆盖需求量与成本的比值。</p>
+<details>
+<summary>参考答案</summary>
+<p>贪心算法步骤：</p>
+<ol>
+<li>计算每个候选站点的覆盖效率：efficiency[i] = Σⱼ(可覆盖的需求dⱼ) / (fᵢ + 平均配送成本)</li>
+<li>按效率降序排序候选站点</li>
+<li>依次选择效率最高的站点，直到：
+   - 已选择k个站点，或
+   - 所有需求已被满足</li>
+<li>对于每个客户，分配给最近的已选站点（考虑容量约束）</li>
+</ol>
+<p>时间复杂度：O(n×m + nlogn + k×m)
+空间复杂度：O(n+m)</p>
+<p>注意：贪心算法不保证全局最优，但在实践中能快速得到较好的解。</p>
+</details>
+<h4 id="52_1">练习 5.2：运力配比计算</h4>
+<p>某配送站覆盖区域日均订单量1000单，订单时段分布为：早高峰(10-12点)占20%，午高峰(12-14点)占40%，晚高峰(18-20点)占30%，其他时段占10%。已知专送骑手每小时可送4单，快送3单，众包2.5单。专送成本6元/单，快送5元/单，众包4.5元/单。请设计最优运力配比。</p>
+<p><strong>Hint</strong>：建立线性规划模型，考虑峰值需求和成本约束。</p>
+<details>
+<summary>参考答案</summary>
+<p>解题步骤：</p>
+<ol>
+<li>
+<p>计算峰值需求：
+   - 午高峰：400单/2小时 = 200单/小时
+   - 需要运力：200/效率 ≈ 50-80人（根据运力类型）</p>
+</li>
+<li>
+<p>建立优化模型：
+   - 决策变量：x₁(专送), x₂(快送), x₃(众包)
+   - 目标：min 6×1000×p₁ + 5×1000×p₂ + 4.5×1000×p₃
+   - 约束：</p>
+<ul>
+<li>4x₁ + 3x₂ + 2.5x₃ ≥ 200 (峰值容量)</li>
+<li>x₁ ≥ 0.3(x₁+x₂+x₃) (服务质量)</li>
+<li>x₃ ≤ 0.3(x₁+x₂+x₃) (管理约束)</li>
+</ul>
+</li>
+<li>
+<p>求解结果：
+   - 专送：25人 (31%)
+   - 快送：35人 (44%)
+   - 众包：20人 (25%)
+   - 日成本：约5250元</p>
+</li>
+</ol>
+</details>
+<h4 id="53_1">练习 5.3：区域边界调整</h4>
+<p>某区域当前划分为4个配送区，各区订单量和运力如下：</p>
+<ul>
+<li>A区：订单200单/小时，运力40人</li>
+<li>B区：订单150单/小时，运力35人</li>
+<li>C区：订单180单/小时，运力30人</li>
+<li>D区：订单120单/小时，运力30人</li>
+</ul>
+<p>假设每个骑手每小时可配送4单，请分析哪些区域需要调整边界，并给出调整建议。</p>
+<p><strong>Hint</strong>：计算各区域的运力利用率，识别失衡区域。</p>
+<details>
+<summary>参考答案</summary>
+<p>分析过程：</p>
+<ol>
+<li>
+<p>计算运力利用率：
+   - A区：200/(40×4) = 125% (严重过载)
+   - B区：150/(35×4) = 107% (轻微过载)
+   - C区：180/(30×4) = 150% (严重过载)
+   - D区：120/(30×4) = 100% (满载)</p>
+</li>
+<li>
+<p>识别问题：
+   - C区最严重，需要立即调整
+   - A区次之，需要支援
+   - D区刚好平衡，可作为缓冲</p>
+</li>
+<li>
+<p>调整建议：
+   - 将C区靠近D区的部分订单（约30单/小时）划给D区
+   - 将A区靠近B区的部分订单（约20单/小时）划给B区
+   - 考虑增加C区和A区的运力配置
+   - 设置弹性边界，允许高峰期跨区支援</p>
+</li>
+</ol>
+</details>
+<h3 id="_4">挑战题</h3>
+<h4 id="54_1">练习 5.4：多目标站点优化</h4>
+<p>设计一个算法同时优化三个目标：(1)最小化总成本，(2)最大化服务覆盖率，(3)最小化平均配送距离。使用Pareto最优的概念，给出求解思路。</p>
+<p><strong>Hint</strong>：考虑使用NSGA-II等多目标优化算法。</p>
+<details>
+<summary>参考答案</summary>
+<p>算法设计：</p>
+<ol>
+<li>
+<p>问题建模：
+   - 决策变量：站点位置向量X = [x₁, x₂, ..., xₖ]
+   - 目标函数：</p>
+<ul>
+<li>f₁(X) = Σ(固定成本 + 运营成本)</li>
+<li>f₂(X) = -覆盖客户数/总客户数</li>
+<li>f₃(X) = Σ(配送距离×订单量)/总订单量</li>
+</ul>
+</li>
+<li>
+<p>NSGA-II算法流程：
+   - 初始化：随机生成N个解
+   - 迭代优化：</p>
+<ul>
+<li>非支配排序：找出Pareto前沿</li>
+<li>拥挤度计算：保持解的多样性</li>
+<li>选择、交叉、变异：生成新解</li>
+<li>精英保留：保留最优解</li>
+</ul>
+</li>
+<li>
+<p>决策支持：
+   - 生成Pareto前沿的3D可视化
+   - 提供交互式权重调整
+   - 基于业务优先级推荐折中方案</p>
+</li>
+<li>
+<p>实践考虑：
+   - 加入地理约束（不可建站区域）
+   - 考虑竞争对手站点位置
+   - 预留未来扩展空间</p>
+</li>
+</ol>
+</details>
+<h4 id="55_1">练习 5.5：仿真系统设计</h4>
+<p>设计一个配送网络仿真系统的核心架构，要求支持：(1)离散事件仿真，(2)多场景对比，(3)实时可视化。给出主要类的设计和事件处理流程。</p>
+<p><strong>Hint</strong>：使用事件驱动架构，参考SimPy等仿真框架。</p>
+<details>
+<summary>参考答案</summary>
+<p>系统架构设计：</p>
+<ol>
+<li>核心类设计：</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">SimulationEngine</span><span class="p">:</span>
+
+    <span class="o">-</span> <span class="n">event_queue</span><span class="p">:</span> <span class="n">PriorityQueue</span>
+    <span class="o">-</span> <span class="n">entities</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Entity</span><span class="p">]</span>
+    <span class="o">-</span> <span class="n">clock</span><span class="p">:</span> <span class="n">SimulationClock</span>
+    <span class="o">-</span> <span class="n">metrics_collector</span><span class="p">:</span> <span class="n">MetricsCollector</span>
+
+<span class="k">class</span> <span class="nc">Entity</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+
+    <span class="o">-</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="o">-</span> <span class="n">state</span><span class="p">:</span> <span class="n">EntityState</span>
+    <span class="o">-</span> <span class="n">handle_event</span><span class="p">(</span><span class="n">event</span><span class="p">):</span> <span class="n">void</span>
+
+<span class="k">class</span> <span class="nc">Order</span><span class="p">(</span><span class="n">Entity</span><span class="p">):</span>
+
+    <span class="o">-</span> <span class="n">create_time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="o">-</span> <span class="n">pickup_location</span><span class="p">:</span> <span class="n">Location</span>
+    <span class="o">-</span> <span class="n">delivery_location</span><span class="p">:</span> <span class="n">Location</span>
+    <span class="o">-</span> <span class="n">status</span><span class="p">:</span> <span class="n">OrderStatus</span>
+
+<span class="k">class</span> <span class="nc">Rider</span><span class="p">(</span><span class="n">Entity</span><span class="p">):</span>
+
+    <span class="o">-</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="o">-</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="o">-</span> <span class="n">current_orders</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Order</span><span class="p">]</span>
+    <span class="o">-</span> <span class="n">location</span><span class="p">:</span> <span class="n">Location</span>
+
+<span class="k">class</span> <span class="nc">Station</span><span class="p">(</span><span class="n">Entity</span><span class="p">):</span>
+
+    <span class="o">-</span> <span class="n">location</span><span class="p">:</span> <span class="n">Location</span>
+    <span class="o">-</span> <span class="n">riders</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Rider</span><span class="p">]</span>
+    <span class="o">-</span> <span class="n">coverage_area</span><span class="p">:</span> <span class="n">Polygon</span>
+</code></pre></div>
+
+<ol start="2">
+<li>
+<p>事件处理流程：
+   - 事件类型：OrderCreated, RiderAssigned, PickupCompleted, DeliveryCompleted
+   - 处理循环：</p>
+<ul>
+<li>从优先队列取出最早事件</li>
+<li>更新仿真时钟</li>
+<li>调用相关实体的handle_event</li>
+<li>生成后续事件</li>
+<li>收集性能指标</li>
+</ul>
+</li>
+<li>
+<p>多场景支持：
+   - ScenarioManager管理不同配置
+   - 并行运行多个仿真实例
+   - 结果聚合和对比分析</p>
+</li>
+<li>
+<p>可视化设计：
+   - 实时地图展示（WebSocket推送）
+   - 关键指标仪表板
+   - 事件日志和回放功能</p>
+</li>
+</ol>
+</details>
+<h4 id="56-">练习 5.6：规划-调度协同优化</h4>
+<p>设计一个机制实现规划层和调度层的双向信息交互和协同优化。要求：(1)规划层能指导调度，(2)调度层反馈能改进规划，(3)支持在线学习。</p>
+<p><strong>Hint</strong>：考虑使用强化学习或贝叶斯优化方法。</p>
+<details>
+<summary>参考答案</summary>
+<p>协同机制设计：</p>
+<ol>
+<li>
+<p>信息流设计：
+   - 下行（规划→调度）：</p>
+<ul>
+<li>容量约束、成本预算</li>
+<li>服务水平目标</li>
+<li>区域划分方案</li>
+<li>上行（调度→规划）：</li>
+<li>实际执行指标</li>
+<li>异常事件统计</li>
+<li>资源利用率</li>
+</ul>
+</li>
+<li>
+<p>协同优化算法：</p>
+</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">AdaptiveCoordinator</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_model</span> <span class="o">=</span> <span class="n">BayesianOptimizer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduling_model</span> <span class="o">=</span> <span class="n">RLAgent</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feedback_buffer</span> <span class="o">=</span> <span class="n">CircularBuffer</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">coordinate_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 规划层决策</span>
+        <span class="n">plan_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">planning_model</span><span class="o">.</span><span class="n">suggest</span><span class="p">()</span>
+
+        <span class="c1"># 转换为调度约束</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate_constraints</span><span class="p">(</span><span class="n">plan_params</span><span class="p">)</span>
+
+        <span class="c1"># 调度层执行</span>
+        <span class="n">schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduling_model</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+
+        <span class="c1"># 收集反馈</span>
+        <span class="n">performance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_performance</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
+
+        <span class="c1"># 更新模型</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_model</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">plan_params</span><span class="p">,</span> <span class="n">performance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduling_model</span><span class="o">.</span><span class="n">learn</span><span class="p">(</span><span class="n">performance</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">schedule</span>
+</code></pre></div>
+
+<ol start="3">
+<li>
+<p>在线学习机制：
+   - 使用Thompson采样平衡探索与利用
+   - 维护不确定性估计
+   - 渐进式参数调整
+   - 异常检测和快速适应</p>
+</li>
+<li>
+<p>实施要点：
+   - 设置安全边界防止激进调整
+   - 保留人工干预接口
+   - A/B测试验证改进效果
+   - 定期离线重训练</p>
+</li>
+</ol>
+</details>
+<h4 id="57">练习 5.7：动态容量规划</h4>
+<p>某站点需要应对季节性和突发性需求变化。设计一个动态容量规划算法，要求能够：(1)预测未来需求，(2)优化人员调度，(3)处理突发事件。</p>
+<p><strong>Hint</strong>：结合时间序列预测和鲁棒优化。</p>
+<details>
+<summary>参考答案</summary>
+<p>算法设计：</p>
+<ol>
+<li>
+<p>需求预测模块：
+   - 使用SARIMA处理季节性
+   - LSTM捕捉复杂模式
+   - 集成多个模型降低风险
+   - 置信区间估计</p>
+</li>
+<li>
+<p>鲁棒优化模型：</p>
+</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">robust_capacity_planning</span><span class="p">(</span><span class="n">demand_forecast</span><span class="p">,</span> <span class="n">uncertainty_set</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">RobustOptimizationModel</span><span class="p">()</span>
+
+    <span class="c1"># 决策变量</span>
+    <span class="n">regular_staff</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_var</span><span class="p">(</span><span class="s1">&#39;regular&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">flexible_staff</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_var</span><span class="p">(</span><span class="s1">&#39;flexible&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">contingency</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_var</span><span class="p">(</span><span class="s1">&#39;contingency&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># 鲁棒约束（最坏情况下仍满足需求）</span>
+    <span class="k">for</span> <span class="n">scenario</span> <span class="ow">in</span> <span class="n">uncertainty_set</span><span class="p">:</span>
+        <span class="n">capacity</span> <span class="o">=</span> <span class="n">regular_staff</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">flexible_staff</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span>
+            <span class="n">capacity</span> <span class="o">+</span> <span class="n">contingency</span> <span class="o">&gt;=</span> 
+            <span class="n">demand_forecast</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">scenario</span><span class="p">[</span><span class="s1">&#39;demand_surge&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+
+    <span class="c1"># 目标：最小化期望成本</span>
+    <span class="n">expected_cost</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">regular_staff</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">+</span>
+        <span class="n">flexible_staff</span> <span class="o">*</span> <span class="mi">800</span> <span class="o">+</span>
+        <span class="n">contingency</span> <span class="o">*</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">prob_emergency</span>
+    <span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">expected_cost</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</code></pre></div>
+
+<ol start="3">
+<li>
+<p>突发事件处理：
+   - 实时监控触发条件
+   - 分级响应机制
+   - 跨区域资源调配
+   - 动态激励发放</p>
+</li>
+<li>
+<p>实施策略：
+   - 滚动规划（每周更新）
+   - 场景库维护
+   - 历史案例学习
+   - 弹性资源池建设</p>
+</li>
+</ol>
+</details>
+<h4 id="58">练习 5.8：全局优化框架</h4>
+<p>设计一个能够同时优化站点布局、区域划分、运力配置的全局优化框架。要求考虑各决策变量之间的相互影响，并给出求解策略。</p>
+<p><strong>Hint</strong>：可以使用分解协调方法或元启发式算法。</p>
+<details>
+<summary>参考答案</summary>
+<p>全局优化框架设计：</p>
+<ol>
+<li>
+<p>问题分解（Benders分解）：
+   - 主问题：站点选址和区域划分
+   - 子问题：运力配置和路径优化
+   - 迭代协调：通过割平面传递信息</p>
+</li>
+<li>
+<p>分层优化算法：</p>
+</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">HierarchicalOptimizer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">optimize_global</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Level 1: 战略决策（站点布局）</span>
+        <span class="n">station_layout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_stations</span><span class="p">(</span>
+            <span class="n">demand_forecast</span><span class="p">,</span>
+            <span class="n">available_locations</span><span class="p">,</span>
+            <span class="n">budget_constraint</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Level 2: 战术决策（区域划分）</span>
+        <span class="n">zone_partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_zones</span><span class="p">(</span>
+            <span class="n">station_layout</span><span class="p">,</span>
+            <span class="n">flow_matrix</span><span class="p">,</span>
+            <span class="n">balance_requirement</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Level 3: 操作决策（运力配置）</span>
+        <span class="n">workforce_plan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_workforce</span><span class="p">(</span>
+            <span class="n">zone_partition</span><span class="p">,</span>
+            <span class="n">time_varying_demand</span><span class="p">,</span>
+            <span class="n">service_level</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 反馈优化</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_feasible</span><span class="p">(</span><span class="n">workforce_plan</span><span class="p">):</span>
+            <span class="c1"># 添加可行性割</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_feasibility_cut</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_global</span><span class="p">()</span>  <span class="c1"># 递归</span>
+
+        <span class="k">return</span> <span class="n">station_layout</span><span class="p">,</span> <span class="n">zone_partition</span><span class="p">,</span> <span class="n">workforce_plan</span>
+</code></pre></div>
+
+<ol start="3">
+<li>
+<p>元启发式方法（遗传算法）：
+   - 染色体编码：[站点基因|区域基因|运力基因]
+   - 适应度函数：weighted_sum(成本, 服务质量, 效率)
+   - 特殊算子：</p>
+<ul>
+<li>修复算子（保证可行性）</li>
+<li>局部搜索（改进质量）</li>
+<li>自适应变异（避免早熟）</li>
+</ul>
+</li>
+<li>
+<p>并行计算策略：
+   - 种群并行评估
+   - 多目标分解并行
+   - GPU加速距离计算
+   - 分布式仿真验证</p>
+</li>
+<li>
+<p>实践建议：
+   - 使用热启动（历史最优解）
+   - 设置时间限制
+   - 记录中间解供人工选择
+   - 增量式优化（逐步改进）</p>
+</li>
+</ol>
+</details>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter4.html" class="nav-link prev">← 第4章：调度引擎 - 实时多人多点分配</a><a href="chapter6.html" class="nav-link next">第6章：ETA系统 - 全链路时间预估 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

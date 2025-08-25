@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第7章：LBS系统（地图/地址库/路径规划）</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">美团超脑系统复现教程</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章：图灵算法平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章：大规模特征计算</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章：机器学习平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章：调度引擎 - 实时多人多点分配</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章：规划引擎（网络/站点/运力结构规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章：ETA系统 - 全链路时间预估</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章：LBS系统（地图/地址库/路径规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章：定价系统</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章：精准营销与会员体系</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">1) 图灵算法平台（算法基础设施）</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="7lbs">第7章：LBS系统（地图/地址库/路径规划）</h1>
+<h2 id="_1">章节大纲</h2>
+<h3 id="71">7.1 系统架构概览</h3>
+<ul>
+<li>LBS在超脑系统中的定位</li>
+<li>核心能力矩阵</li>
+<li>性能指标要求</li>
+<li>与其他模块的接口设计</li>
+</ul>
+<h3 id="72">7.2 五级地址库体系</h3>
+<ul>
+<li>地址结构化设计</li>
+<li>地址解析与标准化</li>
+<li>楼宇/楼层级精度实现</li>
+<li>地址纠错与补全</li>
+</ul>
+<h3 id="73-poi">7.3 地理围栏与POI管理</h3>
+<ul>
+<li>商家地理围栏设计</li>
+<li>配送范围动态调整</li>
+<li>POI数据采集与更新</li>
+<li>围栏计算优化</li>
+</ul>
+<h3 id="74">7.4 路径规划与导航</h3>
+<ul>
+<li>多模式路径规划（步行/骑行/电动车）</li>
+<li>实时路况融合</li>
+<li>室内导航方案</li>
+<li>路径偏离检测与重规划</li>
+</ul>
+<h3 id="75">7.5 高并发架构设计</h3>
+<ul>
+<li>400万QPS的架构挑战</li>
+<li>多级缓存策略</li>
+<li>服务降级与熔断</li>
+<li>地理索引优化</li>
+</ul>
+<h3 id="76">7.6 轨迹处理与分析</h3>
+<ul>
+<li>实时轨迹清洗</li>
+<li>轨迹压缩与存储</li>
+<li>异常轨迹识别</li>
+<li>历史轨迹挖掘</li>
+</ul>
+<h3 id="77-eta">7.7 与调度/ETA的协同</h3>
+<ul>
+<li>距离矩阵预计算</li>
+<li>路网约束建模</li>
+<li>实时路况反馈</li>
+<li>精度与性能平衡</li>
+</ul>
+<h3 id="_2">本章小结</h3>
+<h3 id="_3">练习题</h3>
+<h3 id="_4">常见陷阱与错误</h3>
+<hr />
+<h2 id="_5">学习目标</h2>
+<p>本章结束后，你将能够：</p>
+<ol>
+<li><strong>理解LBS系统架构</strong>：掌握支撑百万级骑手的地理信息系统设计</li>
+<li><strong>构建地址体系</strong>：设计精确到楼层的五级地址库</li>
+<li><strong>实现路径规划</strong>：理解多约束条件下的实时路径计算</li>
+<li><strong>优化系统性能</strong>：处理400万QPS的地理查询请求</li>
+<li><strong>设计围栏系统</strong>：实现高效的地理围栏判定算法</li>
+</ol>
+<hr />
+<h2 id="_6">引言</h2>
+<p>想象一下，在晚高峰的北京国贸，数千名骑手同时在配送，每秒都有上万次路径查询请求。一个骑手站在写字楼下，需要知道去18层取餐要多久；另一个骑手正在规划去3公里外最快的路线；调度系统需要实时计算10000个骑手到5000个商家的距离矩阵...这就是美团LBS系统每天面对的挑战。</p>
+<p>LBS（Location Based Service）系统是超脑的"眼睛"和"地图"，它将真实世界的地理空间映射为可计算的数字世界。没有精准的地理信息，再智能的调度算法也无法落地；没有高效的路径规划，再优秀的时间预估也会失准。本章将深入剖析这个日调用量达760亿次的地理信息引擎。</p>
+<h2 id="71_1">7.1 系统架构概览</h2>
+<h3 id="711-lbs">7.1.1 LBS在超脑系统中的定位</h3>
+<p>LBS系统在整个超脑架构中扮演着基础设施的角色，它是连接物理世界与数字世界的桥梁：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────┐
+│                    业务决策层                            │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  │
+│  │调度引擎 │  │ETA系统  │  │定价系统 │  │规划引擎 │  │
+│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘  │
+│       │            │            │            │         │
+│       └────────────┴────────────┴────────────┘         │
+│                         │                              │
+│                         ▼                              │
+│               ┌──────────────────┐                     │
+│               │   LBS服务层      │                     │
+│               └──────────────────┘                     │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│                    LBS核心能力                          │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
+│  │地址服务  │  │路径规划  │  │地理围栏  │            │
+│  ├──────────┤  ├──────────┤  ├──────────┤            │
+│  │·地址解析 │  │·多模式   │  │·围栏判定 │            │
+│  │·地址纠错 │  │·实时路况 │  │·范围查询 │            │
+│  │·POI管理  │  │·室内导航 │  │·区域管理 │            │
+│  └──────────┘  └──────────┘  └──────────┘            │
+│                                                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
+│  │距离计算  │  │轨迹服务  │  │地图渲染  │            │
+│  ├──────────┤  ├──────────┤  ├──────────┤            │
+│  │·直线距离 │  │·轨迹存储 │  │·热力图   │            │
+│  │·路网距离 │  │·轨迹纠偏 │  │·覆盖图   │            │
+│  │·时间距离 │  │·轨迹分析 │  │·实时位置 │            │
+│  └──────────┘  └──────────┘  └──────────┘            │
+└─────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="712">7.1.2 核心能力矩阵</h3>
+<p>LBS系统需要提供的核心能力可以用一个能力矩阵来描述：</p>
+<p>| 能力维度 | 基础能力 | 进阶能力 | 智能化能力 |</p>
+<table>
+<thead>
+<tr>
+<th>能力维度</th>
+<th>基础能力</th>
+<th>进阶能力</th>
+<th>智能化能力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>地址</strong></td>
+<td>地址解析、标准化</td>
+<td>模糊匹配、纠错</td>
+<td>语义理解、自动补全</td>
+</tr>
+<tr>
+<td><strong>路径</strong></td>
+<td>最短路径</td>
+<td>多约束路径、实时路况</td>
+<td>个性化路径、预测规划</td>
+</tr>
+<tr>
+<td><strong>围栏</strong></td>
+<td>点面判定</td>
+<td>动态围栏、复杂多边形</td>
+<td>智能扩缩、自动优化</td>
+</tr>
+<tr>
+<td><strong>距离</strong></td>
+<td>直线距离</td>
+<td>路网距离、步行距离</td>
+<td>时间距离、成本距离</td>
+</tr>
+<tr>
+<td><strong>轨迹</strong></td>
+<td>轨迹存储</td>
+<td>轨迹压缩、纠偏</td>
+<td>异常检测、模式挖掘</td>
+</tr>
+</tbody>
+</table>
+<h3 id="713">7.1.3 性能指标要求</h3>
+<p>根据公开数据，美团LBS系统需要支撑的性能指标令人震撼：</p>
+<div class="codehilite"><pre><span></span><code>性能指标金字塔
+     ╱╲
+    ╱  ╲     峰值QPS: 400万
+   ╱    ╲    
+  ╱──────╲   日调用量: 760亿
+ ╱        ╲  
+╱──────────╲ 每小时路径规划: 29亿
+
+关键延迟要求：
+
+- 地址解析: &lt; 5ms (P99)
+- 路径规划: &lt; 10ms (P99) 
+- 围栏判定: &lt; 1ms (P99)
+- 距离计算: &lt; 1ms (P99)
+</code></pre></div>
+
+<h3 id="714">7.1.4 与其他模块的接口设计</h3>
+<p>LBS系统作为基础服务，需要为上层业务提供统一、稳定、高效的接口：</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">接口设计原则</span><span class="err">：</span>
+
+<span class="mi">1</span><span class="p">.</span><span class="w"> </span><span class="nx">统一协议</span><span class="err">：</span><span class="nx">所有接口采用统一的RPC协议</span><span class="err">（</span><span class="nx">如Thrift</span><span class="o">/</span><span class="nx">gRPC</span><span class="err">）</span>
+<span class="mi">2</span><span class="p">.</span><span class="w"> </span><span class="nx">批量优化</span><span class="err">：</span><span class="nx">支持批量查询</span><span class="err">，</span><span class="nx">减少网络开销</span>
+<span class="mi">3</span><span class="p">.</span><span class="w"> </span><span class="nx">缓存友好</span><span class="err">：</span><span class="nx">接口设计考虑缓存命中率</span>
+<span class="mi">4</span><span class="p">.</span><span class="w"> </span><span class="nx">降级方案</span><span class="err">：</span><span class="nx">每个接口都有降级策略</span>
+<span class="mi">5</span><span class="p">.</span><span class="w"> </span><span class="nx">监控完备</span><span class="err">：</span><span class="nx">接口级别的监控和报警</span>
+
+<span class="nx">核心接口示例</span><span class="err">：</span>
+
+<span class="c1">// 地址解析接口</span>
+<span class="nx">service</span><span class="w"> </span><span class="nx">AddressService</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 批量地址解析</span>
+<span class="w">    </span><span class="nx">AddressResult</span><span class="w"> </span><span class="nx">batchParse</span><span class="p">(</span><span class="nx">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">addresses</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 地址标准化</span>
+<span class="w">    </span><span class="nx">StandardAddress</span><span class="w"> </span><span class="nx">standardize</span><span class="p">(</span><span class="nx">RawAddress</span><span class="w"> </span><span class="kd">addr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// POI查询</span>
+<span class="w">    </span><span class="nx">List</span><span class="p">&lt;</span><span class="nx">POI</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">searchPOI</span><span class="p">(</span><span class="nx">Location</span><span class="w"> </span><span class="nx">center</span><span class="p">,</span><span class="w"> </span><span class="nx">int</span><span class="w"> </span><span class="nx">radius</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// 路径规划接口  </span>
+<span class="nx">service</span><span class="w"> </span><span class="nx">RouteService</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 单点到单点路径</span>
+<span class="w">    </span><span class="nx">Route</span><span class="w"> </span><span class="nx">planRoute</span><span class="p">(</span><span class="nx">Location</span><span class="w"> </span><span class="nx">from</span><span class="p">,</span><span class="w"> </span><span class="nx">Location</span><span class="w"> </span><span class="nx">to</span><span class="p">,</span><span class="w"> </span><span class="nx">RouteOptions</span><span class="w"> </span><span class="nx">options</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 多点路径规划（TSP问题）</span>
+<span class="w">    </span><span class="nx">MultiRoute</span><span class="w"> </span><span class="nx">planMultiRoute</span><span class="p">(</span><span class="nx">List</span><span class="p">&lt;</span><span class="nx">Location</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">points</span><span class="p">,</span><span class="w"> </span><span class="nx">Constraints</span><span class="w"> </span><span class="nx">constraints</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 距离矩阵计算</span>
+<span class="w">    </span><span class="nx">DistanceMatrix</span><span class="w"> </span><span class="nx">calcDistanceMatrix</span><span class="p">(</span><span class="nx">List</span><span class="p">&lt;</span><span class="nx">Location</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">origins</span><span class="p">,</span><span class="w"> </span><span class="nx">List</span><span class="p">&lt;</span><span class="nx">Location</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">destinations</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// 围栏服务接口</span>
+<span class="nx">service</span><span class="w"> </span><span class="nx">GeofenceService</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 判定点是否在围栏内</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nx">contains</span><span class="p">(</span><span class="nx">Location</span><span class="w"> </span><span class="nx">point</span><span class="p">,</span><span class="w"> </span><span class="nx">GeofenceId</span><span class="w"> </span><span class="nx">fence</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 查询点所在的所有围栏</span>
+<span class="w">    </span><span class="nx">List</span><span class="p">&lt;</span><span class="nx">GeofenceId</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">queryFences</span><span class="p">(</span><span class="nx">Location</span><span class="w"> </span><span class="nx">point</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 范围查询</span>
+<span class="w">    </span><span class="nx">List</span><span class="p">&lt;</span><span class="nx">POI</span><span class="p">&gt;</span><span class="w"> </span><span class="nx">rangeQuery</span><span class="p">(</span><span class="nx">Location</span><span class="w"> </span><span class="nx">center</span><span class="p">,</span><span class="w"> </span><span class="nx">Shape</span><span class="w"> </span><span class="nx">shape</span><span class="p">,</span><span class="w"> </span><span class="nx">Filter</span><span class="w"> </span><span class="nx">filter</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="err">##</span><span class="w"> </span><span class="m m-Double">7.2</span><span class="w"> </span><span class="nx">五级地址库体系</span>
+
+<span class="err">###</span><span class="w"> </span><span class="m m-Double">7.2.1</span><span class="w"> </span><span class="nx">地址结构化设计</span>
+
+<span class="nx">美团的五级地址库是精确配送的基石</span><span class="err">。</span><span class="nx">传统地址系统只能定位到小区或大楼</span><span class="err">，</span><span class="nx">而外卖配送需要精确到楼层甚至房间</span><span class="err">。</span><span class="nx">五级地址体系的设计理念</span><span class="err">：</span>
+</code></pre></div>
+
+<p>五级地址层次结构
+┌─────────────────────────────────────────────────────┐
+│                    Level 1: 城市                     │
+│                   (City: 北京市)                     │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│                    Level 2: 区域                     │
+│                 (District: 朝阳区)                   │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│                    Level 3: 道路/小区                │
+│            (Road/Community: 建国路88号)              │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│                    Level 4: 楼宇                     │
+│              (Building: SOHO现代城A座)               │
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│                    Level 5: 楼层/门牌                │
+│               (Floor/Room: 18层1801室)               │
+└─────────────────────────────────────────────────────┘</p>
+<p>数据结构设计：
+{
+    "addressId": "110105001234567890",  // 18位唯一ID
+    "level1": {
+        "code": "110000",
+        "name": "北京市",
+        "center": [116.405285, 39.904989],
+        "boundary": {...}  // GeoJSON格式边界
+    },
+    "level2": {
+        "code": "110105", 
+        "name": "朝阳区",
+        "parentCode": "110000"
+    },
+    "level3": {
+        "code": "110105001",
+        "name": "建国路",
+        "number": "88号",
+        "type": "ROAD"  // ROAD/COMMUNITY/MALL
+    },
+    "level4": {
+        "code": "110105001001",
+        "name": "SOHO现代城A座",
+        "entrances": [  // 多入口信息
+            {"type": "MAIN", "location": [116.4753, 39.9042]},
+            {"type": "SIDE", "location": [116.4755, 39.9041]}
+        ],
+        "elevators": 6,  // 电梯数量
+        "floors": 28     // 总楼层
+    },
+    "level5": {
+        "code": "110105001001018001",
+        "floor": 18,
+        "room": "1801",
+        "walkTime": 120  // 从主入口步行时间(秒)
+    }
+}</p>
+<div class="codehilite"><pre><span></span><code>### 7.2.2 地址解析与标准化
+
+用户输入的地址往往是非结构化的自然语言，需要强大的解析能力：
+</code></pre></div>
+
+<p>地址解析流程：</p>
+<p>原始输入: "朝阳建国路soho现代城a座18楼美团外卖"
+                    │
+                    ▼
+        ┌──────────────────────┐
+        │    1. 预处理清洗      │
+        │  去除特殊字符、统一大小写│
+        └───────────┬──────────┘
+                    │
+                    ▼
+        ┌──────────────────────┐
+        │    2. 分词与标注      │
+        │  使用NER识别地址要素   │
+        └───────────┬──────────┘
+                    │
+                    ▼
+        ┌──────────────────────┐
+        │    3. 地址要素抽取    │
+        │  区域/道路/楼宇/楼层   │
+        └───────────┬──────────┘
+                    │
+                    ▼
+        ┌──────────────────────┐
+        │    4. 候选地址匹配    │
+        │  模糊匹配+相似度计算   │
+        └───────────┬──────────┘
+                    │
+                    ▼
+        ┌──────────────────────┐
+        │    5. 歧义消解       │
+        │  上下文+历史订单辅助  │
+        └───────────┬──────────┘
+                    │
+                    ▼
+标准化输出: {
+    "formatted": "北京市朝阳区建国路88号SOHO现代城A座18层",
+    "addressId": "110105001001018000",
+    "confidence": 0.95,
+    "alternates": [...]  // 备选地址
+}</p>
+<p>关键技术点：</p>
+<ol>
+<li>分词技术：CRF/LSTM-CRF模型</li>
+<li>地址要素识别：BiLSTM+Attention</li>
+<li>相似度计算：编辑距离+语义相似度</li>
+<li>缩写展开：soho→SOHO现代城</li>
+<li>别名映射：国贸→中国国际贸易中心</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>### 7.2.3 楼宇/楼层级精度实现
+
+实现楼层级精度需要解决室内定位和时间估算问题：
+</code></pre></div>
+
+<p>楼层时间模型：</p>
+<p>楼层配送时间 = 电梯等待时间 + 电梯运行时间 + 步行时间</p>
+<ol>
+<li>
+<p>电梯等待时间建模：
+   - 基于时段的泊松分布
+   - 考虑楼层热度（如1楼、餐饮楼层）
+   - 高峰期动态调整</p>
+</li>
+<li>
+<p>电梯运行时间：
+   - 楼层差 × 单层时间
+   - 考虑停靠概率
+   - 区分直达和站站停</p>
+</li>
+<li>
+<p>步行时间网格：
+   楼层内步行时间热力图
+   ┌─────────────────────┐
+   │ 30  35  40  45  50  │  秒
+   │ 25  20  25  30  35  │
+   │ 20  15  10  15  20  │<br />
+   │ 25  20  15  20  25  │
+   │ 30  25  20  25  30  │
+   └─────────────────────┘
+   基于历史轨迹学习每个区域的步行时间</p>
+</li>
+</ol>
+<p>楼宇画像系统：
+{
+    "buildingId": "B000A6GQ61",
+    "profile": {
+        "type": "OFFICE",  // OFFICE/RESIDENTIAL/MALL
+        "floors": 28,
+        "elevators": {
+            "count": 6,
+            "speed": 2.5,  // m/s
+            "avgWaitTime": {
+                "morning": 45,   // 秒
+                "noon": 120,
+                "evening": 60
+            }
+        },
+        "security": {
+            "needRegister": true,
+            "avgTime": 30  // 登记时间
+        },
+        "peakHours": ["11:30-13:00", "18:00-19:30"],
+        "specialNotes": "负一层美食广场，18-22层为美团办公区"
+    }
+}</p>
+<div class="codehilite"><pre><span></span><code>### 7.2.4 地址纠错与补全
+
+基于海量历史数据的地址智能纠错：
+</code></pre></div>
+
+<p>纠错策略层次：</p>
+<ol>
+<li>
+<p>字符级纠错（拼写错误）：
+   "建国陆" → "建国路"
+   使用编辑距离 + 拼音相似度</p>
+</li>
+<li>
+<p>语义级纠错（理解错误）：
+   "soho三期" → "SOHO现代城"
+   基于知识图谱的实体链接</p>
+</li>
+<li>
+<p>上下文纠错（关联推理）：
+   用户历史: ["朝阳SOHO", "建外SOHO", "？？SOHO"]
+   商家位置: 建国路
+   推理结果: "现代城SOHO"</p>
+</li>
+<li>
+<p>协同过滤纠错：
+   相似用户的地址模式
+   相同商圈的地址分布</p>
+</li>
+</ol>
+<p>地址补全决策树：
+                 输入片段
+                    │
+          ┌─────────┴─────────┐
+          │                   │
+      有历史订单           无历史订单
+          │                   │
+    ┌─────┴─────┐       ┌─────┴─────┐
+    │           │       │           │
+  同商家     不同商家   热门地址   冷门地址
+    │           │       │           │
+ 优先推荐    参考推荐  通用推荐   模糊匹配</p>
+<div class="codehilite"><pre><span></span><code>地址纠错的核心挑战在于平衡准确性和用户体验。过度纠正可能导致错误的地址替换，而纠正不足又会增加配送难度。美团的解决方案是构建多层次的置信度体系：
+
+**置信度分层策略**：
+
+<span class="k">-</span> **高置信度（&gt;0.95）**：直接自动纠正，如常见拼写错误
+<span class="k">-</span> **中置信度（0.7-0.95）**：提示用户确认，展示纠正建议
+<span class="k">-</span> **低置信度（&lt;0.7）**：保留原始输入，通过骑手端反馈学习
+
+**纠错知识库构建**：系统维护了一个包含千万级别名、简称、错别字的映射库。这个知识库通过以下方式持续更新：
+
+1. 骑手反馈的地址修正
+2. 用户主动的地址纠正
+3. OCR识别的门牌照片
+4. 商家上传的位置信息
+
+**实时学习机制**：当某个地址纠错被多次确认后，系统会自动提升该纠错规则的权重，实现自我进化。
+
+<span class="gu">##</span> 7.3 地理围栏与POI管理
+
+<span class="gu">##</span># 7.3.1 商家地理围栏设计
+
+地理围栏（Geofence）是LBS系统的核心概念，它定义了商家的配送范围、骑手的工作区域、以及各种地理相关的业务规则：
+</code></pre></div>
+
+<p>围栏类型层次结构：</p>
+<p>┌─────────────────────────────────────────────────────┐
+│                    围栏类型分类                      │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│  业务围栏                   物理围栏                 │
+│  ├─ 配送围栏               ├─ 行政区划            │
+│  ├─ 营销围栏               ├─ 商圈边界            │
+│  ├─ 价格围栏               ├─ 道路网格            │
+│  └─ 服务围栏               └─ 建筑轮廓            │
+│                                                      │
+│  动态围栏                   静态围栏                 │
+│  ├─ 天气围栏               ├─ 基础配送范围        │
+│  ├─ 时段围栏               ├─ 禁行区域            │
+│  └─ 运力围栏               └─ 特殊区域            │
+└─────────────────────────────────────────────────────┘</p>
+<p>商家配送围栏数据结构：
+{
+    "merchantId": "M1234567",
+    "fences": [
+        {
+            "fenceId": "F001",
+            "type": "DELIVERY",
+            "priority": 1,
+            "shape": {
+                "type": "POLYGON",
+                "coordinates": [
+                    [[116.4741, 39.9041], [116.4751, 39.9041], ...]
+                ]
+            },
+            "properties": {
+                "minOrder": 20,      // 起送价
+                "deliveryFee": 5,    // 配送费
+                "maxDistance": 3000,  // 最大配送距离(米)
+                "estimatedTime": 30   // 预估配送时间(分)
+            },
+            "timeRules": [
+                {
+                    "dayOfWeek": [1,2,3,4,5],  // 周一到周五
+                    "timeRange": "11:00-14:00",
+                    "adjustment": {
+                        "deliveryFee": 3,  // 高峰期加价
+                        "estimatedTime": 45
+                    }
+                }
+            ],
+            "excludeAreas": [  // 排除区域（如湖泊、禁区）
+                {
+                    "type": "CIRCLE",
+                    "center": [116.4745, 39.9045],
+                    "radius": 100
+                }
+            ]
+        }
+    ]
+}</p>
+<div class="codehilite"><pre><span></span><code>**围栏计算优化技术**：
+
+美团每天需要处理数亿次的围栏判定请求，传统的点与多边形判定算法（如射线法）在如此规模下会成为性能瓶颈。优化方案包括：
+
+1. **空间索引**：使用R-Tree或Geohash进行空间索引，快速过滤候选围栏
+2. **围栏简化**：使用Douglas-Peucker算法简化多边形，减少判定计算量
+3. **分层判定**：先用外接矩形快速过滤，再做精确的多边形判定
+4. **缓存策略**：对热点区域的判定结果进行缓存
+5. **并行计算**：利用SIMD指令集并行处理多个点的判定
+
+<span class="gu">##</span># 7.3.2 配送范围动态调整
+
+配送范围不是一成不变的，需要根据实时运力、天气、交通等因素动态调整：
+</code></pre></div>
+
+<p>动态调整决策流程：</p>
+<div class="codehilite"><pre><span></span><code>             实时信号输入
+┌────────────────┼────────────────┐
+│                │                │
+</code></pre></div>
+
+<p>运力状态          天气状况         交通状况
+    │                │                │
+    ▼                ▼                ▼
+运力热力图      恶劣天气区域      拥堵路段
+    │                │                │
+    └────────────────┼────────────────┘
+                     │
+              ┌──────▼──────┐
+              │ 决策引擎    │
+              └──────┬──────┘
+                     │
+    ┌────────────────┼────────────────┐
+    │                │                │
+缩小范围          维持现状         扩大范围
+(运力不足)        (供需平衡)       (运力充足)</p>
+<div class="codehilite"><pre><span></span><code>**动态调整策略**：
+
+1. **运力驱动调整**：
+   <span class="k">-</span> 当区域内可用骑手数 &lt; 阈值时，缩小配送范围
+   <span class="k">-</span> 优先保证核心区域的配送质量
+   <span class="k">-</span> 通过价格杠杆引导运力流动
+
+2. **天气响应机制**：
+   <span class="k">-</span> 雨雪天气自动缩小15-30%配送范围
+   <span class="k">-</span> 极端天气启动应急围栏方案
+   <span class="k">-</span> 为骑手安全设置禁行区域
+
+3. **需求预测调整**：
+   <span class="k">-</span> 基于历史数据预测未来30分钟订单分布
+   <span class="k">-</span> 提前调整围栏以应对需求高峰
+   <span class="k">-</span> 动态平衡不同商圈的运力分配
+
+4. **实时反馈优化**：
+   <span class="k">-</span> 监控超时率、拒单率等指标
+   <span class="k">-</span> 当指标异常时自动触发围栏调整
+   <span class="k">-</span> A/B测试不同调整策略的效果
+
+<span class="gu">##</span># 7.3.3 POI管理
+
+POI（Point of Interest）是地理信息系统的基础数据，美团维护着数千万个POI：
+</code></pre></div>
+
+<p>POI分类体系：</p>
+<p>一级分类          二级分类            三级分类
+├─ 餐饮          ├─ 中餐            ├─ 川菜
+│                │                  ├─ 粤菜
+│                │                  └─ ...
+│                ├─ 西餐            ├─ 法国菜
+│                │                  ├─ 意大利菜
+│                │                  └─ ...
+│                └─ 快餐            ├─ 汉堡
+│                                   └─ ...
+├─ 购物          ├─ 超市            ├─ 大型超市
+│                ├─ 便利店          ├─ 24小时便利店
+│                └─ ...             └─ ...
+├─ 生活服务      ├─ 美容            ├─ 美发
+│                ├─ 洗衣            ├─ 干洗
+│                └─ ...             └─ ...
+└─ ...           └─ ...             └─ ...</p>
+<p>POI数据模型：
+{
+    "poiId": "P1234567890",
+    "name": "海底捞(国贸店)",
+    "category": {
+        "level1": "餐饮",
+        "level2": "中餐",
+        "level3": "火锅"
+    },
+    "location": {
+        "lng": 116.4752,
+        "lat": 39.9042,
+        "address": "北京市朝阳区建国路88号SOHO现代城",
+        "addressId": "110105001001000000"
+    },
+    "attributes": {
+        "businessHours": "10:00-22:00",
+        "avgPrice": 120,
+        "rating": 4.8,
+        "phone": "010-12345678",
+        "images": [...],
+        "tags": ["网红店", "需排队", "有包间"]
+    },
+    "spatial": {
+        "entrance": [[116.4752, 39.9042]],
+        "outline": {...},  // 建筑轮廓
+        "floor": 3,
+        "area": 500  // 平方米
+    },
+    "metadata": {
+        "createTime": "2020-01-01T00:00:00Z",
+        "updateTime": "2024-01-01T00:00:00Z",
+        "source": "MERCHANT_UPLOAD",  // 数据来源
+        "verified": true,
+        "confidence": 0.99
+    }
+}</p>
+<div class="codehilite"><pre><span></span><code>**POI数据采集与更新**：
+
+POI数据的准确性直接影响用户体验，美团通过多种方式保持POI数据的新鲜度：
+
+1. **众包采集**：骑手在配送过程中上传门店照片、位置纠偏
+2. **商家维护**：商家自主更新营业时间、菜单等信息
+3. **用户反馈**：用户报告错误信息、提供更新建议
+4. **自动挖掘**：从用户评论、订单地址中提取POI信息
+5. **第三方同步**：与地图服务商、工商数据同步
+
+**POI去重与融合**：
+
+同一个实体可能有多个数据源，需要智能去重和融合：
+</code></pre></div>
+
+<p>POI融合决策矩阵：</p>
+<p>数据源优先级：
+商家上传 &gt; 官方验证 &gt; 骑手采集 &gt; 用户反馈 &gt; 自动挖掘</p>
+<p>冲突解决策略：
+┌─────────────┬──────────────┬──────────────┬──────────────┐
+│ 属性类型     │ 位置信息     │ 营业时间      │ 联系方式     │
+├─────────────┼──────────────┼──────────────┼──────────────┤
+│ 解决方案     │ 加权平均     │ 最新优先      │ 商家优先     │
+│ 置信度权重   │ 基于来源     │ 基于时间      │ 基于验证     │
+└─────────────┴──────────────┴──────────────┴──────────────┘</p>
+<div class="codehilite"><pre><span></span><code>### 7.3.4 围栏计算优化
+
+围栏计算是LBS系统的性能瓶颈之一，需要精心的算法设计和工程优化：
+</code></pre></div>
+
+<p>围栏判定优化层次：</p>
+<p>第一层：粗筛（毫秒级）
+├─ Geohash网格索引
+├─ 外接矩形过滤
+└─ 空间R-Tree索引</p>
+<p>第二层：精判（微秒级）
+├─ 射线法判定
+├─ 向量叉积法
+└─ GPU并行计算</p>
+<p>第三层：缓存（纳秒级）
+├─ 热点区域缓存
+├─ 用户历史缓存
+└─ 会话级缓存</p>
+<div class="codehilite"><pre><span></span><code>**高性能围栏引擎架构**：
+
+为了支撑每秒百万级的围栏查询，美团设计了分布式围栏引擎：
+
+1. **数据分片**：按地理区域将围栏数据分片存储
+2. **多级缓存**：L1(进程内) → L2(Redis) → L3(数据库)
+3. **预计算**：离线预计算热点区域的围栏关系
+4. **增量更新**：围栏变更通过消息队列实时同步
+5. **降级方案**：当精确判定超时时，返回粗略结果
+
+**围栏索引数据结构**：
+
+```cpp
+// 空间索引节点
+struct SpatialNode {
+    Rectangle mbr;           // 最小外接矩形
+    vector&lt;FenceId&gt; fences; // 围栏ID列表
+    vector&lt;SpatialNode*&gt; children; // 子节点
+
+    bool contains(Point p) {
+        // 快速判定点是否在MBR内
+        return p.x &gt;= mbr.minX &amp;&amp; p.x &lt;= mbr.maxX &amp;&amp;
+               p.y &gt;= mbr.minY &amp;&amp; p.y &lt;= mbr.maxY;
+    }
+};
+
+// 围栏判定优化
+class FenceEngine {
+    SpatialIndex index;      // 空间索引
+    Cache&lt;Point, FenceList&gt; cache; // 判定缓存
+
+    FenceList query(Point p) {
+        // 1. 查缓存
+        if (cache.contains(p)) {
+            return cache.get(p);
+        }
+
+        // 2. 空间索引粗筛
+        auto candidates = index.query(p);
+
+        // 3. 精确判定
+        FenceList results;
+        for (auto fence : candidates) {
+            if (fence.contains(p)) {
+                results.add(fence);
+            }
+        }
+
+        // 4. 更新缓存
+        cache.put(p, results);
+        return results;
+    }
+};
+</code></pre></div>
+
+<h2 id="74_1">7.4 路径规划与导航</h2>
+<p>路径规划是LBS系统的核心算法，直接影响配送效率和用户体验。美团的路径规划需要处理每小时29亿次的规划请求，同时保证10ms以内的响应时间。</p>
+<h3 id="741">7.4.1 多模式路径规划（步行/骑行/电动车）</h3>
+<p>不同的交通模式有着截然不同的路径特征和约束条件：</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">多模式路径特征对比</span><span class="err">：</span>
+
+<span class="err">┌──────────┬────────────┬────────────┬────────────┬────────────┐</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">模式</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="nx">步行</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="nx">自行车</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="nx">电动车</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="nx">汽车</span><span class="w">       </span><span class="err">│</span>
+<span class="err">├──────────┼────────────┼────────────┼────────────┼────────────┤</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">速度</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="mi">5</span><span class="nx">km</span><span class="o">/</span><span class="nx">h</span><span class="w">      </span><span class="err">│</span><span class="w"> </span><span class="mi">15</span><span class="nx">km</span><span class="o">/</span><span class="nx">h</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="mi">25</span><span class="nx">km</span><span class="o">/</span><span class="nx">h</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="mi">30</span><span class="nx">km</span><span class="o">/</span><span class="nx">h</span><span class="w">     </span><span class="err">│</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">可达性</span><span class="w">   </span><span class="err">│</span><span class="w"> </span><span class="nx">最高</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="nx">高</span><span class="w">         </span><span class="err">│</span><span class="w"> </span><span class="nx">中</span><span class="w">         </span><span class="err">│</span><span class="w"> </span><span class="nx">低</span><span class="w">         </span><span class="err">│</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">楼梯</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="err">✓</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="err">✗</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="err">✗</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="err">✗</span><span class="w">          </span><span class="err">│</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">逆行</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="err">✓</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="nx">部分</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="err">✗</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="err">✗</span><span class="w">          </span><span class="err">│</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">人行道</span><span class="w">   </span><span class="err">│</span><span class="w"> </span><span class="err">✓</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="err">✓</span><span class="w">          </span><span class="err">│</span><span class="w"> </span><span class="nx">部分</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="err">✗</span><span class="w">          </span><span class="err">│</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">停车</span><span class="w">     </span><span class="err">│</span><span class="w"> </span><span class="nx">无需</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="nx">方便</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="nx">需要</span><span class="w">       </span><span class="err">│</span><span class="w"> </span><span class="nx">困难</span><span class="w">       </span><span class="err">│</span>
+<span class="err">│</span><span class="w"> </span><span class="nx">天气影响</span><span class="w"> </span><span class="err">│</span><span class="w"> </span><span class="nx">高</span><span class="w">         </span><span class="err">│</span><span class="w"> </span><span class="nx">高</span><span class="w">         </span><span class="err">│</span><span class="w"> </span><span class="nx">中</span><span class="w">         </span><span class="err">│</span><span class="w"> </span><span class="nx">低</span><span class="w">         </span><span class="err">│</span>
+<span class="err">└──────────┴────────────┴────────────┴────────────┴────────────┘</span>
+
+<span class="nx">路网建模</span><span class="err">：</span>
+<span class="nx">Graph</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">nodes</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;N001&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">location</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="m m-Double">116.4752</span><span class="p">,</span><span class="w"> </span><span class="m m-Double">39.9042</span><span class="p">],</span>
+<span class="w">            </span><span class="k">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;INTERSECTION&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// 交叉口</span>
+<span class="w">            </span><span class="nx">elevation</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">           </span><span class="c1">// 海拔</span>
+<span class="w">            </span><span class="nx">connections</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nx">edges</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;E001&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;N001&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;N002&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">distance</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w">          </span><span class="c1">// 米</span>
+<span class="w">            </span><span class="nx">modes</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;WALK&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;BIKE&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;EBIKE&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nx">properties</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">width</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">3.5</span><span class="p">,</span><span class="w">         </span><span class="c1">// 道路宽度</span>
+<span class="w">                </span><span class="nx">slope</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">0.02</span><span class="p">,</span><span class="w">        </span><span class="c1">// 坡度</span>
+<span class="w">                </span><span class="nx">surface</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ASPHALT&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// 路面材质</span>
+<span class="w">                </span><span class="nx">traffic</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;LIGHT&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// 交通状况</span>
+<span class="w">                </span><span class="nx">restricted</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">   </span><span class="c1">// 是否限行</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nx">costs</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">WALK</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span><span class="w">          </span><span class="c1">// 步行耗时(秒)</span>
+<span class="w">                </span><span class="nx">BIKE</span><span class="p">:</span><span class="w"> </span><span class="mi">36</span><span class="p">,</span><span class="w">           </span><span class="c1">// 自行车耗时</span>
+<span class="w">                </span><span class="nx">EBIKE</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="w">           </span><span class="c1">// 电动车耗时</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>多模式路径规划算法</strong>：</p>
+<p>美团采用了改进的A*算法，针对不同交通模式定制化优化：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 多模式路径规划核心算法</span>
+<span class="k">def</span> <span class="nf">multiModalRoute</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+    <span class="c1"># 1. 初始化</span>
+    <span class="n">openSet</span> <span class="o">=</span> <span class="n">PriorityQueue</span><span class="p">()</span>
+    <span class="n">openSet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">cameFrom</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">gScore</span> <span class="o">=</span> <span class="p">{</span><span class="n">start</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="n">fScore</span> <span class="o">=</span> <span class="p">{</span><span class="n">start</span><span class="p">:</span> <span class="n">heuristic</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">mode</span><span class="p">)}</span>
+
+    <span class="c1"># 2. 搜索主循环</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">openSet</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">openSet</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">current</span> <span class="o">==</span> <span class="n">end</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">reconstructPath</span><span class="p">(</span><span class="n">cameFrom</span><span class="p">,</span> <span class="n">current</span><span class="p">)</span>
+
+        <span class="c1"># 3. 遍历邻居节点</span>
+        <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">getNeighbors</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+            <span class="c1"># 计算通过当前节点到邻居的成本</span>
+            <span class="n">tentativeGScore</span> <span class="o">=</span> <span class="n">gScore</span><span class="p">[</span><span class="n">current</span><span class="p">]</span> <span class="o">+</span> \
+                            <span class="n">getCost</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">neighbor</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+            <span class="c1"># 4. 剪枝优化</span>
+            <span class="k">if</span> <span class="n">tentativeGScore</span> <span class="o">&lt;</span> <span class="n">gScore</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">INF</span><span class="p">):</span>
+                <span class="c1"># 记录路径</span>
+                <span class="n">cameFrom</span><span class="p">[</span><span class="n">neighbor</span><span class="p">]</span> <span class="o">=</span> <span class="n">current</span>
+                <span class="n">gScore</span><span class="p">[</span><span class="n">neighbor</span><span class="p">]</span> <span class="o">=</span> <span class="n">tentativeGScore</span>
+                <span class="n">fScore</span><span class="p">[</span><span class="n">neighbor</span><span class="p">]</span> <span class="o">=</span> <span class="n">tentativeGScore</span> <span class="o">+</span> \
+                                 <span class="n">heuristic</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+                <span class="c1"># 加入开放集合</span>
+                <span class="k">if</span> <span class="n">neighbor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">openSet</span><span class="p">:</span>
+                    <span class="n">openSet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">fScore</span><span class="p">[</span><span class="n">neighbor</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># 无可达路径</span>
+
+<span class="c1"># 成本计算函数（考虑多种因素）</span>
+<span class="k">def</span> <span class="nf">getCost</span><span class="p">(</span><span class="n">from</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+    <span class="n">baseCost</span> <span class="o">=</span> <span class="n">edge</span><span class="o">.</span><span class="n">costs</span><span class="p">[</span><span class="n">mode</span><span class="p">]</span>
+
+    <span class="c1"># 实时路况调整</span>
+    <span class="n">trafficFactor</span> <span class="o">=</span> <span class="n">getTrafficFactor</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">currentTime</span><span class="p">)</span>
+
+    <span class="c1"># 天气影响</span>
+    <span class="n">weatherFactor</span> <span class="o">=</span> <span class="n">getWeatherFactor</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">currentWeather</span><span class="p">)</span>
+
+    <span class="c1"># 用户偏好（如避开主路）</span>
+    <span class="n">preferenceFactor</span> <span class="o">=</span> <span class="n">getPreferenceFactor</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+    <span class="c1"># 安全系数（夜间、事故路段等）</span>
+    <span class="n">safetyFactor</span> <span class="o">=</span> <span class="n">getSafetyFactor</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">currentTime</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">baseCost</span> <span class="o">*</span> <span class="n">trafficFactor</span> <span class="o">*</span> <span class="n">weatherFactor</span> <span class="o">*</span> \
+           <span class="n">preferenceFactor</span> <span class="o">*</span> <span class="n">safetyFactor</span>
+</code></pre></div>
+
+<h3 id="742">7.4.2 实时路况融合</h3>
+<p>实时路况是影响路径规划质量的关键因素。美团通过多源数据融合构建实时路况图：</p>
+<div class="codehilite"><pre><span></span><code>路况数据源架构：
+
+┌─────────────────────────────────────────────────────────┐
+│                    实时路况融合系统                      │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  数据源层                处理层              输出层      │
+│  ┌──────────┐         ┌──────────┐      ┌──────────┐  │
+│  │骑手轨迹  │────────▶│          │      │          │  │
+│  ├──────────┤         │  数据    │      │  路况    │  │
+│  │用户反馈  │────────▶│  清洗    │─────▶│  融合    │  │
+│  ├──────────┤         │  标准化  │      │  模型    │  │
+│  │第三方数据│────────▶│          │      │          │  │
+│  ├──────────┤         └──────────┘      └──────────┘  │
+│  │IoT传感器 │────────▶ 实时流处理          │           │
+│  └──────────┘                              ▼           │
+│                                    ┌──────────────┐     │
+│                                    │ 路况图输出   │     │
+│                                    │ (5秒更新)    │     │
+│                                    └──────────────┘     │
+└─────────────────────────────────────────────────────────┘
+
+路况等级定义：
+Level 1: 畅通    (绿色)  - 实际速度 &gt; 期望速度 <span class="gs">* 0.9</span>
+<span class="gs">Level 2: 基本畅通 (黄色)  - 实际速度 &gt; 期望速度 *</span> 0.7
+Level 3: 轻度拥堵 (橙色)  - 实际速度 &gt; 期望速度 <span class="gs">* 0.5</span>
+<span class="gs">Level 4: 中度拥堵 (红色)  - 实际速度 &gt; 期望速度 *</span> 0.3
+Level 5: 严重拥堵 (深红)  - 实际速度 &lt; 期望速度 * 0.3
+</code></pre></div>
+
+<p><strong>路况预测模型</strong>：</p>
+<p>除了实时路况，美团还构建了路况预测模型，预测未来30分钟的路况变化：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 路况预测模型架构</span>
+<span class="k">class</span> <span class="nc">TrafficPredictor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">historical_patterns</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># 历史模式</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_calendar</span> <span class="o">=</span> <span class="p">{}</span>        <span class="c1"># 事件日历</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weather_forecast</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># 天气预报</span>
+
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">road_segment</span><span class="p">,</span> <span class="n">future_time</span><span class="p">):</span>
+        <span class="c1"># 1. 历史同期路况</span>
+        <span class="n">historical</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHistoricalPattern</span><span class="p">(</span>
+            <span class="n">road_segment</span><span class="p">,</span> 
+            <span class="n">future_time</span><span class="o">.</span><span class="n">weekday</span><span class="p">,</span> 
+            <span class="n">future_time</span><span class="o">.</span><span class="n">hour</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 2. 趋势分析</span>
+        <span class="n">trend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyzeTrend</span><span class="p">(</span><span class="n">road_segment</span><span class="p">,</span> <span class="n">last_30_minutes</span><span class="p">)</span>
+
+        <span class="c1"># 3. 事件影响（演唱会、球赛等）</span>
+        <span class="n">event_impact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEventImpact</span><span class="p">(</span><span class="n">road_segment</span><span class="p">,</span> <span class="n">future_time</span><span class="p">)</span>
+
+        <span class="c1"># 4. 天气影响</span>
+        <span class="n">weather_impact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getWeatherImpact</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weather_forecast</span><span class="p">[</span><span class="n">future_time</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 5. 融合预测</span>
+        <span class="n">prediction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fusePrediction</span><span class="p">(</span>
+            <span class="n">historical</span> <span class="o">*</span> <span class="mf">0.4</span> <span class="o">+</span>
+            <span class="n">trend</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span>
+            <span class="n">event_impact</span> <span class="o">*</span> <span class="mf">0.2</span> <span class="o">+</span>
+            <span class="n">weather_impact</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prediction</span>
+</code></pre></div>
+
+<h3 id="743">7.4.3 室内导航方案</h3>
+<p>外卖配送的"最后100米"往往是最复杂的，特别是在大型商场、写字楼等室内场景：</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">室内导航技术栈</span><span class="err">：</span>
+
+<span class="mi">1</span><span class="p">.</span><span class="w"> </span><span class="nx">室内地图构建</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">楼层平面图数字化</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">POI标注</span><span class="err">（</span><span class="nx">电梯</span><span class="err">、</span><span class="nx">楼梯</span><span class="err">、</span><span class="nx">商铺</span><span class="err">）</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">通行区域识别</span>
+<span class="w">   </span><span class="err">└─</span><span class="w"> </span><span class="nx">障碍物标记</span>
+
+<span class="mi">2</span><span class="p">.</span><span class="w"> </span><span class="nx">室内定位技术</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">WiFi指纹定位</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">蓝牙Beacon</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">地磁定位</span>
+<span class="w">   </span><span class="err">└─</span><span class="w"> </span><span class="nx">惯性导航</span><span class="err">（</span><span class="nx">IMU</span><span class="err">）</span>
+
+<span class="mi">3</span><span class="p">.</span><span class="w"> </span><span class="nx">路径规划算法</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">多楼层路径搜索</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">电梯等待时间估算</span>
+<span class="w">   </span><span class="err">├─</span><span class="w"> </span><span class="nx">楼梯vs电梯决策</span>
+<span class="w">   </span><span class="err">└─</span><span class="w"> </span><span class="nx">拥挤度避让</span>
+
+<span class="nx">室内导航数据结构</span><span class="err">：</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="s">&quot;buildingId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;B001&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;floors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="s">&quot;map&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="s">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;floor1.png&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s">&quot;scale&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">0.1</span><span class="p">,</span><span class="w">  </span><span class="c1">// 米/像素</span>
+<span class="w">                </span><span class="s">&quot;rotation&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="s">&quot;walkableArea&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="c1">// 多边形定义的可行走区域</span>
+<span class="w">                </span><span class="p">[[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="mi">200</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">200</span><span class="p">]]</span>
+<span class="w">            </span><span class="p">],</span>
+<span class="w">            </span><span class="s">&quot;pois&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;E01&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="s">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ELEVATOR&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="s">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">],</span>
+<span class="w">                    </span><span class="s">&quot;connections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">]</span><span class="w">  </span><span class="c1">// 连接楼层</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;S01&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="s">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;STAIR&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="s">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">180</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">],</span>
+<span class="w">                    </span><span class="s">&quot;connections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">],</span>
+<span class="w">            </span><span class="s">&quot;shops&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;SHOP001&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;星巴克&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="s">&quot;entrance&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">120</span><span class="p">,</span><span class="w"> </span><span class="mi">130</span><span class="p">],</span>
+<span class="w">                    </span><span class="s">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;咖啡店&quot;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>室内外无缝切换</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 室内外导航切换逻辑</span>
+<span class="k">class</span> <span class="nc">HybridNavigator</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">navigate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="c1"># 1. 判断起终点位置</span>
+        <span class="n">startIndoor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isIndoor</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">endIndoor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isIndoor</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">startIndoor</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">endIndoor</span><span class="p">:</span>
+            <span class="c1"># 纯室外导航</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdoorRoute</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">startIndoor</span> <span class="ow">and</span> <span class="n">endIndoor</span> <span class="ow">and</span> \
+             <span class="bp">self</span><span class="o">.</span><span class="n">sameBuilding</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+            <span class="c1"># 同建筑物内导航</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">indoorRoute</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 室内外混合导航</span>
+            <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">if</span> <span class="n">startIndoor</span><span class="p">:</span>
+                <span class="c1"># 室内到建筑物出口</span>
+                <span class="n">exit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findNearestExit</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indoorRoute</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">exit</span><span class="p">))</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">exit</span>
+
+            <span class="c1"># 室外路径</span>
+            <span class="k">if</span> <span class="n">endIndoor</span><span class="p">:</span>
+                <span class="n">entrance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findBestEntrance</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+                <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdoorRoute</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">entrance</span><span class="p">))</span>
+                <span class="c1"># 入口到室内终点</span>
+                <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indoorRoute</span><span class="p">(</span><span class="n">entrance</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdoorRoute</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mergeSegments</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="744">7.4.4 路径偏离检测与重规划</h3>
+<p>骑手在配送过程中可能因为各种原因偏离规划路径，系统需要实时检测并做出响应：</p>
+<div class="codehilite"><pre><span></span><code>偏离检测状态机：
+
+         ┌─────────┐
+         │  正常   │
+         └────┬────┘
+              │
+              ▼
+    ┌──────────────────┐
+    │ 检测到位置偏移   │
+    └─────────┬────────┘
+              │
+         判定偏离程度
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+    ▼         ▼         ▼
+轻微偏离  中度偏离  严重偏离
+    │         │         │
+    ▼         ▼         ▼
+继续监控  建议返回  强制重规划
+
+偏离检测算法：
+def detectDeviation(currentLocation, plannedPath, threshold):
+    # 1. 计算到规划路径的垂直距离
+    distance = calculatePerpendicularDistance(
+        currentLocation, 
+        plannedPath
+    )
+
+    # 2. 计算偏离角度
+    if len(recentLocations) &gt;= 3:
+        movingDirection = calculateDirection(recentLocations)
+        plannedDirection = getPlannedDirection(plannedPath)
+        angle = angleDifference(movingDirection, plannedDirection)
+
+    # 3. 综合判定
+    if distance &gt; threshold.distance:
+        return &quot;DISTANCE_DEVIATION&quot;
+    elif angle &gt; threshold.angle:
+        return &quot;DIRECTION_DEVIATION&quot;
+    elif self.isMovingAway(currentLocation, destination):
+        return &quot;WRONG_DIRECTION&quot;
+    else:
+        return &quot;ON_TRACK&quot;
+
+<span class="gh">#</span> 重规划策略
+def replanStrategy(deviation, currentLocation, destination):
+    if deviation == &quot;MINOR&quot;:
+        # 软提醒，不强制
+        return {
+            &quot;action&quot;: &quot;SUGGEST&quot;,
+            &quot;message&quot;: &quot;建议返回规划路线&quot;
+        }
+    elif deviation == &quot;MODERATE&quot;:
+        # 提供返回路径
+        returnPath = planPath(currentLocation, nearestPointOnPath)
+        return {
+            &quot;action&quot;: &quot;RETURN_PATH&quot;,
+            &quot;path&quot;: returnPath
+        }
+    elif deviation == &quot;SEVERE&quot;:
+        # 完全重新规划
+        newPath = planPath(currentLocation, destination)
+        return {
+            &quot;action&quot;: &quot;REPLAN&quot;,
+            &quot;path&quot;: newPath,
+            &quot;reason&quot;: &quot;严重偏离原路径&quot;
+        }
+</code></pre></div>
+
+<p><strong>智能重规划决策</strong>：</p>
+<p>重规划不是简单地计算新路径，还需要考虑多种业务因素：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">SmartReplanner</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">shouldReplan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="c1"># 评估重规划的收益和成本</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;time_saved&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateTimeSaved</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+            <span class="s2">&quot;distance_saved&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateDistanceSaved</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+            <span class="s2">&quot;delivery_risk&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">assessDeliveryRisk</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+            <span class="s2">&quot;user_experience&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictUserImpact</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+            <span class="s2">&quot;rider_effort&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateRiderEffort</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 加权决策</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s2">&quot;time_saved&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s2">&quot;distance_saved&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.2</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s2">&quot;delivery_risk&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s2">&quot;user_experience&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.15</span> <span class="o">+</span>
+            <span class="n">factors</span><span class="p">[</span><span class="s2">&quot;rider_effort&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.05</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">REPLAN_THRESHOLD</span>
+
+    <span class="k">def</span> <span class="nf">replan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="c1"># 生成多个候选路径</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># 最短路径</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shortestPath</span><span class="p">(</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">current</span><span class="p">,</span> 
+            <span class="n">context</span><span class="o">.</span><span class="n">destination</span>
+        <span class="p">))</span>
+
+        <span class="c1"># 最快路径（考虑实时路况）</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fastestPath</span><span class="p">(</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">current</span><span class="p">,</span> 
+            <span class="n">context</span><span class="o">.</span><span class="n">destination</span><span class="p">,</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">traffic</span>
+        <span class="p">))</span>
+
+        <span class="c1"># 最安全路径（避开事故多发区）</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">safestPath</span><span class="p">(</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">current</span><span class="p">,</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">destination</span>
+        <span class="p">))</span>
+
+        <span class="c1"># 选择最优路径</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectBest</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</code></pre></div>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter6.html" class="nav-link prev">← 第6章：ETA系统 - 全链路时间预估</a><a href="chapter8.html" class="nav-link next">第8章：定价系统 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

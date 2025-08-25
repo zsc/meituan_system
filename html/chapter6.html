@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第6章：ETA系统 - 全链路时间预估</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">美团超脑系统复现教程</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章：图灵算法平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章：大规模特征计算</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章：机器学习平台</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章：调度引擎 - 实时多人多点分配</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章：规划引擎（网络/站点/运力结构规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章：ETA系统 - 全链路时间预估</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章：LBS系统（地图/地址库/路径规划）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章：定价系统</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章：精准营销与会员体系</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">1) 图灵算法平台（算法基础设施）</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="6eta-">第6章：ETA系统 - 全链路时间预估</h1>
+<h2 id="_1">章节概述</h2>
+<p>ETA（Estimated Time of Arrival）系统是美团超脑的时间预估引擎，负责对外卖履约全链路各环节进行精准的时间预测。作为调度决策的关键输入和用户体验的核心保障，ETA系统需要在毫秒级延迟内完成复杂的时空计算，为千万级订单提供分钟级精度的时间预估。</p>
+<p>本章将深入剖析ETA系统的技术架构，从多粒度时间建模到深度学习应用，从特征工程到在线推理优化，帮助你理解如何构建一个城市级的实时时间预估系统。我们还将探讨LLM/Agent如何增强ETA系统的异常识别能力和自适应学习能力。</p>
+<h2 id="_2">学习目标</h2>
+<p>完成本章学习后，你将能够：</p>
+<ol>
+<li><strong>理解ETA系统架构</strong>：掌握全链路时间预估的系统设计和模块划分</li>
+<li><strong>掌握时间建模方法</strong>：学会对复杂履约流程进行时间分解和建模</li>
+<li><strong>精通特征工程</strong>：理解时空特征、行为特征、环境特征的构建方法</li>
+<li><strong>应用深度学习</strong>：掌握DeepFM等模型在时间预估中的应用</li>
+<li><strong>优化在线推理</strong>：学会设计高性能的在线预测服务</li>
+<li><strong>系统集成能力</strong>：理解ETA与调度、定价等模块的协同机制</li>
+</ol>
+<h2 id="_3">本章大纲</h2>
+<h2 id="61-eta">6.1 ETA系统架构全景</h2>
+<h3 id="611">6.1.1 系统定位与价值</h3>
+<p>ETA系统在美团超脑中扮演着"时间度量衡"的角色，其准确性直接影响用户体验、骑手效率和平台成本。一个精准的ETA系统需要达到以下目标：</p>
+<p><strong>核心价值体现</strong>：</p>
+<ol>
+<li><strong>用户端承诺</strong>：为用户提供可信的送达时间，减少焦虑和投诉</li>
+<li><strong>调度决策依据</strong>：为调度引擎提供准确的时间成本函数</li>
+<li><strong>骑手任务规划</strong>：帮助骑手合理安排取餐和送餐顺序</li>
+<li><strong>商家备餐指导</strong>：指导商家合理安排出餐时间</li>
+<li><strong>运营分析支撑</strong>：为运营提供履约质量分析的基础数据</li>
+</ol>
+<p><strong>挑战与复杂性</strong>：</p>
+<div class="codehilite"><pre><span></span><code>时间预估的复杂性来源：
+┌─────────────────────────────────────────────────────┐
+│  环境因素：天气、交通、节假日、区域特征              │
+│  ↓                                                  │
+│  行为因素：商家出餐速度、骑手经验、用户位置          │
+│  ↓                                                  │
+│  系统因素：并单策略、路径规划、调度决策              │
+│  ↓                                                  │
+│  不确定性：突发事件、地址错误、电梯等待              │
+└─────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="612">6.1.2 核心模块划分</h3>
+<p>ETA系统采用分层架构设计，各层职责明确：</p>
+<div class="codehilite"><pre><span></span><code>┌────────────────────────────────────────────────────────┐
+│                     接入层（API Gateway）               │
+│  职责：请求路由、参数校验、限流熔断、协议转换          │
+└────────────────────────────────────────────────────────┘
+                              │
+┌────────────────────────────────────────────────────────┐
+│                    服务编排层（Service Orchestration）  │
+│  职责：多模型调度、策略选择、降级逻辑、结果融合        │
+└────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  预测服务    │     │  特征服务    │     │  规则引擎    │
+│ (Prediction) │     │  (Feature)   │     │   (Rule)     │
+├──────────────┤     ├──────────────┤     ├──────────────┤
+│ · 模型推理   │     │ · 实时特征   │     │ · 业务规则   │
+│ · 批量预测   │     │ · 离线特征   │     │ · 异常处理   │
+│ · 结果缓存   │     │ · 特征回填   │     │ · 兜底策略   │
+└──────────────┘     └──────────────┘     └──────────────┘
+        │                     │                     │
+└────────────────────────────────────────────────────────┘
+                              │
+┌────────────────────────────────────────────────────────┐
+│                    数据层（Data Layer）                 │
+│  · 实时流数据（Kafka）  · 离线数据（Hive/HBase）      │
+│  · 特征存储（Redis）    · 模型仓库（HDFS）            │
+└────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h3 id="613">6.1.3 数据流与接口设计</h3>
+<p><strong>实时预测数据流</strong>：</p>
+<div class="codehilite"><pre><span></span><code>用户下单 → 订单创建事件 → ETA请求组装 → 特征提取
+    ↓                                        ↓
+履约完成 ← 骑手调度 ← 时间预估 ← 模型推理
+    ↓
+时间回流 → 样本构建 → 模型更新 → 版本发布
+</code></pre></div>
+
+<p><strong>核心接口定义</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">单点时间预估接口</span>
+<span class="w">   </span><span class="nb">POS</span><span class="n">T</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">eta</span><span class="o">/</span><span class="n">predict</span>
+<span class="w">   </span><span class="err">{</span>
+<span class="w">     </span><span class="s">&quot;order_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;xxx&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="s">&quot;merchant_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;xxx&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">     </span><span class="s">&quot;user_location&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">{</span><span class="mf">...</span><span class="err">}</span><span class="p">,</span>
+<span class="w">     </span><span class="s">&quot;order_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2024-01-01 12:00:00&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="s">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">[</span><span class="mf">...</span><span class="err">]</span><span class="p">,</span>
+<span class="w">     </span><span class="s">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">{</span><span class="mf">...</span><span class="err">}</span>
+<span class="w">   </span><span class="err">}</span>
+
+<span class="mf">2.</span><span class="w"> </span><span class="n">批量预估接口</span><span class="err">（</span><span class="n">供调度使用</span><span class="err">）</span>
+<span class="w">   </span><span class="nb">POS</span><span class="n">T</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">eta</span><span class="o">/</span><span class="n">batch_predict</span>
+<span class="w">   </span><span class="err">{</span>
+<span class="w">     </span><span class="s">&quot;requests&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">[</span>
+<span class="w">       </span><span class="err">{</span><span class="s">&quot;order_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;001&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rider_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;r1&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">...</span><span class="err">}</span><span class="p">,</span>
+<span class="w">       </span><span class="err">{</span><span class="s">&quot;order_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;002&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rider_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;r2&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">...</span><span class="err">}</span>
+<span class="w">     </span><span class="err">]</span><span class="p">,</span>
+<span class="w">     </span><span class="s">&quot;strategy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fast&quot;</span><span class="w">  </span><span class="o">//</span><span class="w"> </span><span class="n">fast</span><span class="o">/</span><span class="n">accurate</span>
+<span class="w">   </span><span class="err">}</span>
+
+<span class="mf">3.</span><span class="w"> </span><span class="n">链路时间查询接口</span>
+<span class="w">   </span><span class="kr">GET</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">eta</span><span class="o">/</span><span class="n">breakdown</span><span class="o">/</span><span class="err">{</span><span class="ow">or</span><span class="n">der_id</span><span class="err">}</span>
+<span class="w">   </span><span class="n">Response</span><span class="p">:</span><span class="w"> </span><span class="err">{</span>
+<span class="w">     </span><span class="s">&quot;total_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">35</span><span class="p">,</span>
+<span class="w">     </span><span class="s">&quot;breakdown&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">{</span>
+<span class="w">       </span><span class="s">&quot;merchant_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">12</span><span class="p">,</span>
+<span class="w">       </span><span class="s">&quot;rider_arrive_merchant&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">8</span><span class="p">,</span>
+<span class="w">       </span><span class="s">&quot;rider_pickup&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span>
+<span class="w">       </span><span class="s">&quot;rider_deliver&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">10</span><span class="p">,</span>
+<span class="w">       </span><span class="s">&quot;other&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3</span>
+<span class="w">     </span><span class="err">}</span>
+<span class="w">   </span><span class="err">}</span>
+</code></pre></div>
+
+<h3 id="614">6.1.4 性能指标体系</h3>
+<p>ETA系统的性能评估需要多维度指标：</p>
+<p><strong>准确性指标</strong>：</p>
+<ul>
+<li><strong>MAE（平均绝对误差）</strong>：整体预测偏差，目标 &lt; 3分钟</li>
+<li><strong>RMSE（均方根误差）</strong>：对大偏差的惩罚，目标 &lt; 5分钟  </li>
+<li><strong>准时率</strong>：|预测-实际| &lt; 5分钟的订单占比，目标 &gt; 95%</li>
+<li><strong>分位数准确率</strong>：P50/P90/P99的预测准确性</li>
+</ul>
+<p><strong>系统性指标</strong>：</p>
+<ul>
+<li><strong>响应时间</strong>：P99 &lt; 50ms，P50 &lt; 20ms</li>
+<li><strong>吞吐量</strong>：峰值QPS &gt; 10万</li>
+<li><strong>可用性</strong>：99.99%（月故障时间 &lt; 4.3分钟）</li>
+<li><strong>降级能力</strong>：核心功能降级后仍可提供基础服务</li>
+</ul>
+<p><strong>业务指标</strong>：</p>
+<ul>
+<li><strong>用户满意度</strong>：时间相关投诉率 &lt; 0.1%</li>
+<li><strong>骑手效率</strong>：因时间预估导致的空驶率 &lt; 5%</li>
+<li><strong>商家协同</strong>：出餐等待时间 &lt; 2分钟</li>
+</ul>
+<h2 id="62">6.2 全链路时间建模</h2>
+<h3 id="621">6.2.1 履约流程分解</h3>
+<p>外卖履约是一个复杂的多阶段流程，准确的时间预估需要对每个环节进行精细建模：</p>
+<div class="codehilite"><pre><span></span><code>订单履约全链路时间分解：
+┌──────────────────────────────────────────────────────────┐
+│  T_total = T_merchant + T_pickup + T_deliver + T_other    │
+└──────────────────────────────────────────────────────────┘
+                           │
+    ┌──────────────────────┼──────────────────────┐
+    ▼                      ▼                      ▼
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│ 商家阶段    │    │ 取餐阶段    │    │ 配送阶段    │
+├─────────────┤    ├─────────────┤    ├─────────────┤
+│·订单确认    │    │·骑手分配    │    │·取餐出发    │
+│·备餐制作    │    │·前往商家    │    │·配送路线    │
+│·打包装袋    │    │·到店等待    │    │·交付用户    │
+│·等待取餐    │    │·取餐核验    │    │·确认完成    │
+└─────────────┘    └─────────────┘    └─────────────┘
+</code></pre></div>
+
+<p><strong>细粒度时间建模</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">T_merchant</span><span class="err">（商家阶段）</span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">T_confirm</span><span class="err">：</span><span class="w">    </span><span class="err">订单确认时间（</span><span class="mh">5</span><span class="o">-</span><span class="mh">30</span><span class="err">秒）</span>
+<span class="w">  </span><span class="n">T_prepare</span><span class="err">：</span><span class="w">    </span><span class="err">备餐时间（</span><span class="mh">5</span><span class="o">-</span><span class="mh">30</span><span class="err">分钟，主要变量）</span>
+<span class="w">  </span><span class="n">T_pack</span><span class="err">：</span><span class="w">       </span><span class="err">打包时间（</span><span class="mh">30</span><span class="o">-</span><span class="mh">120</span><span class="err">秒）</span>
+<span class="w">  </span><span class="n">T_wait</span><span class="err">：</span><span class="w">       </span><span class="err">等待取餐（</span><span class="mh">0</span><span class="o">-</span><span class="mh">5</span><span class="err">分钟）</span>
+<span class="p">}</span>
+
+<span class="n">T_pickup</span><span class="err">（取餐阶段）</span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">T_assign</span><span class="err">：</span><span class="w">     </span><span class="err">骑手分配时间（系统决策，</span><span class="o">&lt;</span><span class="mh">100</span><span class="n">ms</span><span class="err">）</span>
+<span class="w">  </span><span class="n">T_arrive</span><span class="err">：</span><span class="w">     </span><span class="err">到店时间（</span><span class="mh">2</span><span class="o">-</span><span class="mh">15</span><span class="err">分钟）</span>
+<span class="w">  </span><span class="n">T_indoor</span><span class="err">：</span><span class="w">     </span><span class="err">室内寻找时间（</span><span class="mh">30</span><span class="err">秒</span><span class="o">-</span><span class="mh">3</span><span class="err">分钟）</span>
+<span class="w">  </span><span class="n">T_verify</span><span class="err">：</span><span class="w">     </span><span class="err">取餐核验（</span><span class="mh">10</span><span class="o">-</span><span class="mh">60</span><span class="err">秒）</span>
+<span class="p">}</span>
+
+<span class="n">T_deliver</span><span class="err">（配送阶段）</span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">T_route</span><span class="err">：</span><span class="w">      </span><span class="err">骑行时间（</span><span class="mh">5</span><span class="o">-</span><span class="mh">20</span><span class="err">分钟）</span>
+<span class="w">  </span><span class="n">T_building</span><span class="err">：</span><span class="w">   </span><span class="err">楼宇内时间（</span><span class="mh">1</span><span class="o">-</span><span class="mh">5</span><span class="err">分钟）</span>
+<span class="w">  </span><span class="n">T_handover</span><span class="err">：</span><span class="w">   </span><span class="err">交付时间（</span><span class="mh">30</span><span class="o">-</span><span class="mh">120</span><span class="err">秒）</span>
+<span class="p">}</span>
+
+<span class="n">T_other</span><span class="err">（其他因素）</span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">T_traffic</span><span class="err">：</span><span class="w">    </span><span class="err">交通延误（概率事件）</span>
+<span class="w">  </span><span class="n">T_weather</span><span class="err">：</span><span class="w">    </span><span class="err">天气影响（雨天</span><span class="o">+</span><span class="mh">20</span><span class="o">%</span><span class="err">）</span>
+<span class="w">  </span><span class="n">T_elevator</span><span class="err">：</span><span class="w">   </span><span class="err">电梯等待（高层建筑</span><span class="o">+</span><span class="mh">2</span><span class="o">-</span><span class="mh">5</span><span class="err">分钟）</span>
+<span class="w">  </span><span class="n">T_exception</span><span class="err">：</span><span class="w">  </span><span class="err">异常处理（地址错误、用户不在等）</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="622">6.2.2 多粒度时间预估</h3>
+<p>不同场景需要不同粒度的时间预估：</p>
+<ol>
+<li><strong>承诺时间（用户视角）</strong></li>
+</ol>
+<div class="codehilite"><pre><span></span><code>目标：给用户一个可信且稳定的预期
+策略：P80分位数 + 缓冲时间
+公式：T_promise = T_p80 + Buffer(context)
+
+Buffer计算考虑因素：
+
+<span class="k">-</span> 天气状况：雨天+5分钟，雪天+10分钟
+<span class="k">-</span> 高峰时段：午高峰+3分钟，晚高峰+5分钟
+<span class="k">-</span> 区域特征：CBD+3分钟，大学城+2分钟
+<span class="k">-</span> 商家历史：新商家+3分钟，延误商家+5分钟
+</code></pre></div>
+
+<ol start="2">
+<li><strong>调度时间（系统视角）</strong></li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="n">目标</span><span class="err">：</span><span class="n">为调度决策提供准确的时间成本</span>
+<span class="n">策略</span><span class="err">：</span><span class="n">期望值</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">方差考虑</span>
+<span class="n">公式</span><span class="err">：</span><span class="n">T_dispatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">E</span><span class="o">[</span><span class="n">T</span><span class="o">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">α</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">Var</span><span class="o">[</span><span class="n">T</span><span class="o">]^</span><span class="mf">0.5</span>
+
+<span class="n">α参数动态调整</span><span class="err">：</span>
+
+<span class="o">-</span><span class="w"> </span><span class="n">运力充足</span><span class="err">：</span><span class="n">α</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="err">（</span><span class="n">激进策略</span><span class="err">）</span>
+<span class="o">-</span><span class="w"> </span><span class="n">运力紧张</span><span class="err">：</span><span class="n">α</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.5</span><span class="err">（</span><span class="n">保守策略</span><span class="err">）</span>
+<span class="o">-</span><span class="w"> </span><span class="n">普通状态</span><span class="err">：</span><span class="n">α</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="err">（</span><span class="n">平衡策略</span><span class="err">）</span>
+</code></pre></div>
+
+<ol start="3">
+<li><strong>导航时间（骑手视角）</strong></li>
+</ol>
+<div class="codehilite"><pre><span></span><code>目标：给骑手实时更新的到达时间
+策略：实时路况 + 个人因子
+公式：T_nav = T_base <span class="gs">* PersonalFactor *</span> TrafficFactor
+
+PersonalFactor计算：
+
+<span class="k">-</span> 历史速度：rider_speed / avg_speed
+<span class="k">-</span> 熟悉度：area_orders / 100（上限1.2）
+<span class="k">-</span> 疲劳度：1 + 0.1 * working_hours / 8
+</code></pre></div>
+
+<h3 id="623">6.2.3 不确定性建模</h3>
+<p>时间预估的核心挑战是处理不确定性：</p>
+<p><strong>不确定性来源分析</strong>：</p>
+<div class="codehilite"><pre><span></span><code>┌────────────────────────────────────────┐
+│         可建模不确定性（70%）           │
+├────────────────────────────────────────┤
+│ · 商家出餐速度波动（历史数据）        │
+│ · 交通拥堵模式（时段规律）            │
+│ · 天气影响（气象预报）                │
+│ · 骑手个体差异（个人画像）            │
+└────────────────────────────────────────┘
+                    │
+┌────────────────────────────────────────┐
+│        难建模不确定性（30%）            │
+├────────────────────────────────────────┤
+│ · 突发交通事故                        │
+│ · 商家设备故障                        │
+│ · 用户临时修改地址                    │
+│ · 电梯故障/等待                       │
+└────────────────────────────────────────┘
+</code></pre></div>
+
+<p><strong>概率分布建模</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 使用混合高斯模型建模时间分布</span>
+<span class="n">T</span> <span class="o">~</span> <span class="n">GMM</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">=</span> <span class="n">Σ</span><span class="p">(</span><span class="n">w_i</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">μ_i</span><span class="p">,</span> <span class="n">σ_i</span><span class="err">²</span><span class="p">))</span>
+
+<span class="n">其中</span><span class="err">：</span>
+
+<span class="o">-</span> <span class="n">成分1</span><span class="err">：</span><span class="n">正常情况</span><span class="err">（</span><span class="n">权重0</span><span class="mf">.7</span><span class="err">）</span>
+<span class="o">-</span> <span class="n">成分2</span><span class="err">：</span><span class="n">轻度延误</span><span class="err">（</span><span class="n">权重0</span><span class="mf">.2</span><span class="err">）</span>
+<span class="o">-</span> <span class="n">成分3</span><span class="err">：</span><span class="n">严重延误</span><span class="err">（</span><span class="n">权重0</span><span class="mf">.1</span><span class="err">）</span>
+
+<span class="c1"># 贝叶斯更新</span>
+<span class="n">P</span><span class="p">(</span><span class="n">T</span><span class="o">|</span><span class="n">evidence</span><span class="p">)</span> <span class="err">∝</span> <span class="n">P</span><span class="p">(</span><span class="n">evidence</span><span class="o">|</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">P</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+<span class="n">实时根据新信息更新时间分布</span>
+</code></pre></div>
+
+<h3 id="624">6.2.4 时间分布估计</h3>
+<p><strong>分位数回归</strong>：
+不仅预测期望值，还预测整个分布：</p>
+<div class="codehilite"><pre><span></span><code>分位数回归目标：
+
+<span class="k">-</span> P10：乐观估计（最快可能时间）
+<span class="k">-</span> P50：中位数（典型时间）
+<span class="k">-</span> P90：保守估计（考虑延误）
+
+Loss = Σ_τ Σ_i ρ_τ(y_i - q_τ(x_i))
+其中 ρ_τ(u) = u(τ - I(u&lt;0))
+</code></pre></div>
+
+<p><strong>时序依赖建模</strong>：</p>
+<div class="codehilite"><pre><span></span><code>订单时间具有强时序依赖：
+T_t = f(T_{t-1}, T_{t-2}, ..., Context_t)
+
+使用LSTM捕获时序模式：
+h_t = LSTM(x_t, h_{t-1})
+T_t = Dense(h_t)
+
+周期性模式编码：
+
+<span class="k">-</span> 小时周期：sin(2π*hour/24), cos(2π*hour/24)
+<span class="k">-</span> 星期周期：sin(2π*day/7), cos(2π*day/7)
+<span class="k">-</span> 月度周期：sin(2π*day/30), cos(2π*day/30)
+</code></pre></div>
+
+<h2 id="63">6.3 特征工程与数据处理</h2>
+<h3 id="631">6.3.1 时空特征构建</h3>
+<p>时空特征是ETA预估的核心，需要从多个维度刻画时间和空间的关联：</p>
+<p><strong>空间特征体系</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">绝对位置特征</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">经纬度</span><span class="err">：</span><span class="p">(</span><span class="n">lng</span><span class="p">,</span><span class="w"> </span><span class="n">lat</span><span class="p">)</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Geohash编码</span><span class="err">：</span><span class="n">不同精度的空间索引</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">H3六边形网格</span><span class="err">：</span><span class="n">均匀的空间划分</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">行政区划</span><span class="err">：</span><span class="n">省</span><span class="o">/</span><span class="n">市</span><span class="o">/</span><span class="n">区</span><span class="o">/</span><span class="n">街道</span><span class="o">/</span><span class="n">社区</span>
+
+<span class="mf">2.</span><span class="w"> </span><span class="n">相对位置特征</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">直线距离</span><span class="err">：</span><span class="n">haversine_distance</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">)</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">路网距离</span><span class="err">：</span><span class="n">road_network_distance</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">)</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">方向角度</span><span class="err">：</span><span class="n">bearing</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">)</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">相对象限</span><span class="err">：</span><span class="n">quadrant</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">)</span>
+
+<span class="mf">3.</span><span class="w"> </span><span class="n">区域属性特征</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">POI密度</span><span class="err">：</span><span class="n">餐厅</span><span class="o">/</span><span class="n">写字楼</span><span class="o">/</span><span class="n">住宅密度</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">路网密度</span><span class="err">：</span><span class="n">主干道</span><span class="o">/</span><span class="n">支路</span><span class="o">/</span><span class="n">小区道路</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">区域类型</span><span class="err">：</span><span class="n">CBD</span><span class="o">/</span><span class="n">住宅区</span><span class="o">/</span><span class="n">学校</span><span class="o">/</span><span class="n">医院</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">配送难度</span><span class="err">：</span><span class="n">楼层高度</span><span class="o">/</span><span class="n">是否有电梯</span><span class="o">/</span><span class="n">门禁</span>
+
+<span class="mf">4.</span><span class="w"> </span><span class="n">时空交互特征</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">时段</span><span class="err">×</span><span class="n">区域</span><span class="err">：</span><span class="n">rush_hour</span><span class="w"> </span><span class="err">×</span><span class="w"> </span><span class="n">CBD</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">天气</span><span class="err">×</span><span class="n">距离</span><span class="err">：</span><span class="n">rain</span><span class="w"> </span><span class="err">×</span><span class="w"> </span><span class="n">distance</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">节假日</span><span class="err">×</span><span class="n">商圈</span><span class="err">：</span><span class="n">holiday</span><span class="w"> </span><span class="err">×</span><span class="w"> </span><span class="n">business_area</span>
+</code></pre></div>
+
+<p><strong>时间特征工程</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">时间多尺度编码</span><span class="err">：</span>
+<span class="err">├──</span> <span class="n">绝对时间</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">年月日时分秒</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">星期几</span><span class="err">（</span><span class="mi">0</span><span class="o">-</span><span class="mi">6</span><span class="err">）</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">是否节假日</span>
+<span class="err">├──</span> <span class="n">周期时间</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">日内周期</span><span class="err">（</span><span class="mi">0</span><span class="o">-</span><span class="mi">23</span><span class="n">时</span><span class="err">）</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">周内周期</span><span class="err">（</span><span class="n">周一到周日</span><span class="err">）</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">月内周期</span><span class="err">（</span><span class="mi">1</span><span class="o">-</span><span class="mi">31</span><span class="n">日</span><span class="err">）</span>
+<span class="err">├──</span> <span class="n">相对时间</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">距离高峰时间差</span>
+<span class="err">│</span>   <span class="err">├──</span> <span class="n">距离节假日天数</span>
+<span class="err">│</span>   <span class="err">└──</span> <span class="n">距离月初</span><span class="o">/</span><span class="n">月末天数</span>
+<span class="err">└──</span> <span class="n">统计时间</span>
+    <span class="err">├──</span> <span class="n">过去1小时订单量</span>
+    <span class="err">├──</span> <span class="n">过去10分钟延误率</span>
+    <span class="err">└──</span> <span class="n">未来30分钟预测单量</span>
+</code></pre></div>
+
+<h3 id="632">6.3.2 行为序列特征</h3>
+<p>用户、商家、骑手的历史行为蕴含丰富的时间模式：</p>
+<p><strong>商家行为序列</strong>：</p>
+<div class="codehilite"><pre><span></span><code>特征维度：
+
+1. 出餐速度序列
+   <span class="k">-</span> 最近N单出餐时间：[t1, t2, ..., tn]
+   <span class="k">-</span> 移动平均：MA(n) = mean(last_n_orders)
+   <span class="k">-</span> 加权平均：WMA = Σ(w_i * t_i) / Σw_i
+   <span class="k">-</span> 趋势特征：trend = t_n - t_1
+
+2. 忙碌程度序列
+   <span class="k">-</span> 同时在做订单数：concurrent_orders
+   <span class="k">-</span> 厨师在岗数量：active_chefs
+   <span class="k">-</span> 排队等待时间：queue_time
+
+3. 异常事件序列
+   <span class="k">-</span> 超时次数：timeout_count
+   <span class="k">-</span> 取消次数：cancel_count
+   <span class="k">-</span> 投诉次数：complaint_count
+</code></pre></div>
+
+<p><strong>骑手行为序列</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="err">特征维度：</span>
+
+<span class="mf">1.</span><span class="w"> </span><span class="err">速度模式</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">历史平均速度：</span><span class="n">avg_speed_history</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">分时段速度：</span><span class="n">speed_by_hour</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">分区域速度：</span><span class="n">speed_by_area</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">负载速度：</span><span class="n">speed_by_load</span>
+
+<span class="mf">2.</span><span class="w"> </span><span class="err">履约模式</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">准时率：</span><span class="n">on_time_rate</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">平均超时：</span><span class="n">avg_overtime</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">并单能力：</span><span class="n">multi_order_efficiency</span>
+
+<span class="mf">3.</span><span class="w"> </span><span class="err">路径偏好</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">主路</span><span class="o">/</span><span class="err">小路偏好：</span><span class="n">main_road_preference</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">绕路倾向：</span><span class="n">detour_tendency</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">熟悉区域：</span><span class="n">familiar_areas</span>
+</code></pre></div>
+
+<h3 id="633">6.3.3 环境上下文特征</h3>
+<p>外部环境对时间有显著影响：</p>
+<p><strong>天气特征</strong>：</p>
+<div class="codehilite"><pre><span></span><code>实时天气数据：
+├── 降水
+│   ├── 降水量（mm/h）
+│   ├── 降水类型（雨/雪/冰雹）
+│   └── 持续时间
+├── 温度
+│   ├── 实时温度
+│   ├── 体感温度
+│   └── 温差（日内最高-最低）
+├── 风力
+│   ├── 风速（m/s）
+│   ├── 风向
+│   └── 阵风等级
+└── 能见度
+    ├── 能见度距离
+    ├── 空气质量（AQI）
+    └── 雾霾等级
+
+影响量化：
+
+- 小雨：速度降低10-15%
+- 大雨：速度降低20-30%
+- 雪天：速度降低30-50%
+- 高温(&gt;35°C)：速度降低5-10%
+- 低温(&lt;0°C)：速度降低10-15%
+</code></pre></div>
+
+<p><strong>交通特征</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="err">实时路况：</span>
+
+<span class="mf">1.</span><span class="w"> </span><span class="err">拥堵指数</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">路段拥堵指数：</span><span class="n">congestion_index</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">区域拥堵指数：</span><span class="n">area_congestion</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">拥堵里程占比：</span><span class="n">congested_ratio</span>
+
+<span class="mf">2.</span><span class="w"> </span><span class="err">事件影响</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">交通事故：</span><span class="n">accident_impact</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">道路施工：</span><span class="n">construction_impact</span><span class="w">  </span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">大型活动：</span><span class="n">event_impact</span>
+
+<span class="mf">3.</span><span class="w"> </span><span class="err">公共交通</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">地铁运行状态</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">公交拥挤度</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">共享单车可用量</span>
+</code></pre></div>
+
+<h3 id="634">6.3.4 特征实时计算</h3>
+<p><strong>流式特征计算架构</strong>：</p>
+<div class="codehilite"><pre><span></span><code>                Kafka订单流
+                     │
+        ┌────────────┼────────────┐
+        ▼            ▼            ▼
+   Flink作业1   Flink作业2   Flink作业3
+   (事件特征)   (聚合特征)   (窗口特征)
+        │            │            │
+        └────────────┼────────────┘
+                     ▼
+              特征写入Redis
+                     │
+                     ▼
+              在线特征服务
+</code></pre></div>
+
+<p><strong>特征更新策略</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 实时特征更新</span>
+<span class="k">class</span> <span class="nc">RealtimeFeatureUpdater</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">update_merchant_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order_event</span><span class="p">):</span>
+        <span class="c1"># 更新商家最近N单</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">lpush</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;merchant:</span><span class="si">{</span><span class="n">merchant_id</span><span class="si">}</span><span class="s2">:recent&quot;</span><span class="p">,</span> 
+                        <span class="n">order_event</span><span class="o">.</span><span class="n">prepare_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">ltrim</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;merchant:</span><span class="si">{</span><span class="n">merchant_id</span><span class="si">}</span><span class="s2">:recent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
+
+        <span class="c1"># 更新移动平均</span>
+        <span class="n">recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">lrange</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;merchant:</span><span class="si">{</span><span class="n">merchant_id</span><span class="si">}</span><span class="s2">:recent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+        <span class="n">ma_10</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">recent</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;merchant:</span><span class="si">{</span><span class="n">merchant_id</span><span class="si">}</span><span class="s2">:ma_10&quot;</span><span class="p">,</span> <span class="n">ma_10</span><span class="p">)</span>
+
+        <span class="c1"># 更新并发订单数</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">hincrby</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;merchant:</span><span class="si">{</span><span class="n">merchant_id</span><span class="si">}</span><span class="s2">:concurrent&quot;</span><span class="p">,</span> 
+                          <span class="n">order_event</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># 批量特征计算</span>
+<span class="k">class</span> <span class="nc">BatchFeatureComputer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">compute_daily_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Spark作业计算T+1特征</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT merchant_id,</span>
+<span class="s2">                   AVG(prepare_time) as avg_prepare_time,</span>
+<span class="s2">                   STDDEV(prepare_time) as std_prepare_time,</span>
+<span class="s2">                   PERCENTILE(prepare_time, 0.5) as median_prepare_time,</span>
+<span class="s2">                   PERCENTILE(prepare_time, 0.9) as p90_prepare_time</span>
+<span class="s2">            FROM orders</span>
+<span class="s2">            WHERE dt = current_date - 1</span>
+<span class="s2">            GROUP BY merchant_id</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 写入特征存储</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="s2">&quot;overwrite&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">saveAsTable</span><span class="p">(</span><span class="s2">&quot;merchant_daily_features&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>特征一致性保证</strong>：</p>
+<div class="codehilite"><pre><span></span><code>训练与推理特征一致性方案：
+
+1. 特征版本管理
+   - 每个特征带版本号
+   - 模型记录使用的特征版本
+   - 推理时校验版本匹配
+
+2. 特征回填机制
+   - 离线特征定期回填到在线
+   - 保证时间窗口对齐
+   - 处理缺失值策略统一
+
+3. 特征监控
+   - 分布偏移检测
+   - 异常值告警
+   - 覆盖率监控
+</code></pre></div>
+
+<h2 id="64">6.4 深度学习模型设计</h2>
+<h3 id="641-deepfm">6.4.1 DeepFM架构详解</h3>
+<p>DeepFM是ETA系统的核心模型，结合了因子分解机(FM)的二阶特征交互能力和深度神经网络(DNN)的高阶特征学习能力：</p>
+<div class="codehilite"><pre><span></span><code>DeepFM架构图：
+                    Input Features
+                          │
+            ┌─────────────┼─────────────┐
+            │                           │
+      Embedding Layer              Embedding Layer
+            │                           │
+      ┌─────┴─────┐              ┌─────┴─────┐
+      │    FM     │              │    DNN    │
+      │Component  │              │Component  │
+      └─────┬─────┘              └─────┬─────┘
+            │                           │
+      FM Output                   DNN Output
+            │                           │
+            └─────────┬─────────────────┘
+                      │
+                  Sigmoid/Linear
+                      │
+                  Prediction
+
+FM组件：
+y_FM = &lt;w, x&gt; + Σ_i Σ_j&lt;V_i, V_j&gt;x_i·x_j
+
+DNN组件：
+y_DNN = σ(W_L·a_L + b_L)
+其中 a_l = σ(W_l·a_{l-1} + b_l)
+
+最终输出：
+y = sigmoid(y_FM + y_DNN)
+</code></pre></div>
+
+<p><strong>特征嵌入层设计</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 离散特征嵌入</span>
+<span class="n">merchant_emb</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span><span class="n">num_merchants</span><span class="p">,</span> <span class="n">emb_dim</span><span class="p">)(</span><span class="n">merchant_id</span><span class="p">)</span>
+<span class="n">rider_emb</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span><span class="n">num_riders</span><span class="p">,</span> <span class="n">emb_dim</span><span class="p">)(</span><span class="n">rider_id</span><span class="p">)</span>
+<span class="n">area_emb</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span><span class="n">num_areas</span><span class="p">,</span> <span class="n">emb_dim</span><span class="p">)(</span><span class="n">area_id</span><span class="p">)</span>
+
+<span class="c1"># 连续特征处理</span>
+<span class="n">continuous_features</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="s1">&#39;merchant_avg_time&#39;</span><span class="p">,</span> <span class="s1">&#39;rider_speed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;rainfall&#39;</span><span class="p">,</span> <span class="s1">&#39;congestion_index&#39;</span>
+<span class="p">]</span>
+<span class="n">cont_input</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="n">emb_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)(</span><span class="n">continuous_features</span><span class="p">)</span>
+
+<span class="c1"># 特征拼接</span>
+<span class="n">all_embeddings</span> <span class="o">=</span> <span class="n">Concatenate</span><span class="p">()([</span>
+    <span class="n">merchant_emb</span><span class="p">,</span> <span class="n">rider_emb</span><span class="p">,</span> <span class="n">area_emb</span><span class="p">,</span> <span class="n">cont_input</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<h3 id="642">6.4.2 多任务学习框架</h3>
+<p>ETA系统采用多任务学习同时预测多个相关目标：</p>
+<div class="codehilite"><pre><span></span><code>多任务学习架构：
+            Shared Bottom
+                 │
+    ┌────────────┼────────────┐
+    │            │            │
+Task1 Tower  Task2 Tower  Task3 Tower
+    │            │            │
+承诺时间      实际时间      超时概率
+
+损失函数：
+L = λ₁L_promise + λ₂L_actual + λ₃L_timeout
+
+其中：
+
+<span class="k">-</span> L_promise: 用户承诺时间的MAE损失
+<span class="k">-</span> L_actual: 实际履约时间的MAE损失  
+<span class="k">-</span> L_timeout: 超时概率的交叉熵损失
+</code></pre></div>
+
+<p><strong>任务间关系建模</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">MultiTaskETA</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 共享底层</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_bottom</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 任务特定层</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">promise_tower</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># 承诺时间</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actual_tower</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># 实际时间</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_tower</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>  <span class="c1"># 超时概率</span>
+        <span class="p">)</span>
+</code></pre></div>
+
+<h3 id="643">6.4.3 注意力机制应用</h3>
+<p>引入注意力机制捕获关键特征和时序依赖：</p>
+<div class="codehilite"><pre><span></span><code>自注意力层：
+Attention(Q,K,V) = softmax(QK^T/√d_k)V
+
+应用场景：
+
+1. 商家订单序列注意力
+   <span class="k">-</span> 关注相似菜品的历史出餐时间
+   <span class="k">-</span> 关注相同时段的出餐模式
+
+2. 骑手轨迹序列注意力
+   <span class="k">-</span> 关注相似路线的历史用时
+   <span class="k">-</span> 关注拥堵路段的时间影响
+
+3. 跨模态注意力
+   <span class="k">-</span> 文本地址 → 地理位置
+   <span class="k">-</span> 天气状况 → 速度影响
+</code></pre></div>
+
+<h3 id="644">6.4.4 模型融合策略</h3>
+<p>单一模型难以应对所有场景，需要模型融合：</p>
+<div class="codehilite"><pre><span></span><code>融合架构：
+┌──────────┐  ┌──────────┐  ┌──────────┐
+│ DeepFM   │  │ XGBoost  │  │ LSTM     │
+└────┬─────┘  └────┬─────┘  └────┬─────┘
+     │             │             │
+     └─────────────┼─────────────┘
+                   │
+            ┌──────▼──────┐
+            │   Stacking  │
+            │   MetaModel │
+            └──────┬──────┘
+                   │
+              Final Output
+
+融合策略：
+
+1. 加权平均：y = Σw_i * y_i
+2. Stacking：meta_model(y1, y2, y3, features)
+3. Blending：动态选择最优模型
+</code></pre></div>
+
+<h3 id="65">6.5 在线推理与优化</h3>
+<ul>
+<li>推理服务架构</li>
+<li>模型压缩与加速</li>
+<li>缓存策略设计</li>
+<li>降级与容灾机制</li>
+</ul>
+<h3 id="66">6.6 系统集成与接口设计</h3>
+<ul>
+<li>与调度引擎协同</li>
+<li>与定价系统联动</li>
+<li>API设计规范</li>
+<li>监控与报警体系</li>
+</ul>
+<h3 id="_4">本章小结</h3>
+<h3 id="_5">练习题</h3>
+<h3 id="_6">常见陷阱与错误</h3>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter5.html" class="nav-link prev">← 第5章：规划引擎（网络/站点/运力结构规划）</a><a href="chapter7.html" class="nav-link next">第7章：LBS系统（地图/地址库/路径规划） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>
